@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="build/App.js"></script>
+  </head>
+  <body>
+
+  </body>
+  <script type="text/javascript">
+    var key  = 'task-list'
+    var seed = Math.round(Math.random() * 1000)
+    var app  = Elm.App.fullscreen(seed)
+
+    app.ports.setLocalStorage.subscribe(function(value) {
+      localStorage.setItem(key, value)
+    })
+
+    app.ports.getLocalStorage.subscribe(function() {
+      app.ports.onModelLoaded.send(localStorage.getItem(key))
+    })
+  </script>
+</html>
