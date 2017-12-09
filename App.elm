@@ -2,9 +2,7 @@ module App exposing (..)
 
 import Html exposing (Html)
 import Model exposing (..)
-import Uuid exposing (Uuid, uuidGenerator)
-import Random.Pcg exposing (initialSeed, step)
-import Debug
+import Random.Pcg exposing (initialSeed)
 import Element exposing (..)
 import Element.Attributes exposing (..)
 import Element.Events exposing (..)
@@ -25,7 +23,7 @@ type Msg
     | TaskSave Group Task
     | TaskNew Group
     | GroupRemove Group
-    | GroupNew
+    | GroupNew (Maybe Group)
     | Load
     | OnLoad (Maybe String)
 
@@ -42,29 +40,11 @@ main =
 
 init : Int -> ( Model, Cmd Msg )
 init flags =
-    let
-        ( groupUuid, initSeed ) =
-            step uuidGenerator (initialSeed flags)
-
-        ( taskUuid, seed ) =
-            step uuidGenerator initSeed
-    in
-        ( { seed = seed
-          , groups =
-                [ { uuid = groupUuid
-                  , title = ""
-                  , tasks =
-                        [ { uuid = taskUuid
-                          , description = ""
-                          , isEditing = True
-                          , isDone = False
-                          }
-                        ]
-                  }
-                ]
-          }
-        , loadModel ()
-        )
+    ( { seed = (initialSeed flags)
+      , groups = []
+      }
+    , loadModel ()
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -108,82 +88,49 @@ update msg model =
         TaskRemove group task ->
             let
                 newModel =
-                    (List.filter (\aTask -> task.uuid /= aTask.uuid) group.tasks)
-                        |> asTasksIn group
-                        |> updateGroup model
+                    removeTask model group task
             in
                 ( newModel, saveModel newModel )
 
         TaskNew group ->
             let
-                ( uuid, seed ) =
-                    step uuidGenerator model.seed
-
-                tasks =
-                    group.tasks
-                        ++ [ { uuid = uuid
-                             , description = ""
-                             , isEditing = True
-                             , isDone = False
-                             }
-                           ]
-
                 newModel =
-                    { group | tasks = tasks }
-                        |> updateGroup model
-                        |> updateSeed seed
+                    addNewTask model group
             in
                 ( newModel, saveModel newModel )
 
         Load ->
             ( model, loadModel () )
 
-        GroupNew ->
+        GroupNew preceedingGroup ->
             let
-                ( uuid, seed ) =
-                    step uuidGenerator model.seed
-
-                groups =
-                    model.groups
-                        ++ [ { uuid = uuid
-                             , title = ""
-                             , tasks = []
-                             }
-                           ]
-
                 newModel =
-                    { model | groups = groups, seed = seed }
+                    addNewGroup model preceedingGroup
             in
                 ( newModel, saveModel newModel )
 
         GroupRemove group ->
             let
                 newModel =
-                    { model | groups = (List.filter (\aGrp -> group.uuid /= aGrp.uuid) model.groups) }
+                    removeGroup model group
             in
                 ( newModel, saveModel newModel )
 
         OnLoad jsonStr ->
-            case jsonStr of
-                Nothing ->
-                    ( model, Cmd.none )
-
-                Just jsonStr ->
-                    case (deserialize jsonStr) of
-                        Ok loadedModel ->
-                            ( loadedModel, Cmd.none )
-
-                        Err str ->
-                            let
-                                _ =
-                                    Debug.log "Error" str
-                            in
-                                ( model, Cmd.none )
+            let
+                newModel =
+                    deserialize jsonStr model
+            in
+                ( newModel, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     onModelLoaded OnLoad
+
+
+
+-- View -----------------------
 
 
 type Styles
@@ -350,19 +297,26 @@ indicator isDone =
 
 view : Model -> Html Msg
 view model =
-    viewport stylesheet <|
-        column JobLog
-            [ height (percent 100), width (percent 100), center ]
-            [ column None
-                (commonSpacing ++ [ width (px 800) ])
-                [ row Header
-                    [ spread, paddingTop 10, paddingBottom 10 ]
-                    [ h1 Title [] (text "Job Log")
-                    , btn Load (Text "Load")
+    let
+        content =
+            if List.isEmpty model.groups then
+                [ btn (GroupNew Nothing) (Text "+ Add Group") ]
+            else
+                (List.map renderGroup model.groups)
+    in
+        viewport stylesheet <|
+            column JobLog
+                [ height (percent 100), width (percent 100), center ]
+                [ column None
+                    (commonSpacing ++ [ width (px 800) ])
+                    [ row Header
+                        [ spread, paddingTop 10, paddingBottom 10 ]
+                        [ h1 Title [] (text "Job Log")
+                        , btn Load (Text "Load")
+                        ]
+                    , column None commonSpacing content
                     ]
-                , column None commonSpacing (List.map renderGroup model.groups)
                 ]
-            ]
 
 
 renderGroup : Group -> Element Styles variation Msg
@@ -386,7 +340,7 @@ renderGroup group =
                 (List.map renderTask group.tasks)
             , row None
                 [ spread, paddingBottom 10 ]
-                [ btn GroupNew (Text "+ Add Group")
+                [ btn (GroupNew (Just group)) (Text "+ Add Group")
                 , btn (TaskNew group) (Text "+ Add Task")
                 ]
             ]

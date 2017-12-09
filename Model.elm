@@ -1,9 +1,10 @@
-port module Model exposing (Task, Group, Model, loadModel, saveModel, serialize, deserialize, onModelLoaded, updateGroupTask, updateTask, updateGroup, updateSeed, asTasksIn)
+port module Model exposing (Task, Group, Model, addNewGroup, addNewTask, removeTask, removeGroup, updateTask, updateGroup, loadModel, saveModel, deserialize, onModelLoaded)
 
-import Uuid exposing (Uuid)
-import Random.Pcg exposing (Seed)
+import Uuid exposing (Uuid, uuidGenerator)
+import Random.Pcg exposing (Seed, step)
 import Json.Encode exposing (encode, string, object, bool, Value)
 import Json.Decode exposing (decodeString, field)
+import Debug
 
 
 type alias Task =
@@ -31,6 +32,35 @@ port onModelLoaded : (Maybe String -> msg) -> Sub msg
 -- Updating
 
 
+newGroup : Seed -> ( Group, Seed )
+newGroup seed =
+    let
+        ( uuid, newSeed ) =
+            step uuidGenerator seed
+    in
+        ( { uuid = uuid
+          , title = ""
+          , tasks = []
+          }
+        , newSeed
+        )
+
+
+newTask : Seed -> ( Task, Seed )
+newTask seed =
+    let
+        ( uuid, newSeed ) =
+            step uuidGenerator seed
+    in
+        ( { uuid = uuid
+          , description = ""
+          , isEditing = True
+          , isDone = False
+          }
+        , newSeed
+        )
+
+
 updateGroupTask : Group -> Task -> Group
 updateGroupTask group newTask =
     let
@@ -50,6 +80,24 @@ updateTask model group newTask =
         |> updateGroup model
 
 
+addNewTask : Model -> Group -> Model
+addNewTask model group =
+    let
+        ( task, seed ) =
+            newTask model.seed
+    in
+        { group | tasks = group.tasks ++ [ task ] }
+            |> updateGroup model
+            |> updateSeed seed
+
+
+removeTask : Model -> Group -> Task -> Model
+removeTask model group task =
+    (List.filter (\aTask -> task.uuid /= aTask.uuid) group.tasks)
+        |> asTasksIn group
+        |> updateGroup model
+
+
 updateGroup : Model -> Group -> Model
 updateGroup model newGroup =
     let
@@ -60,6 +108,35 @@ updateGroup model newGroup =
                 group
     in
         { model | groups = List.map updateGroup model.groups }
+
+
+removeGroup : Model -> Group -> Model
+removeGroup model group =
+    { model | groups = (List.filter (\aGrp -> group.uuid /= aGrp.uuid) model.groups) }
+
+
+addNewGroup : Model -> Maybe Group -> Model
+addNewGroup model preceedingGroup =
+    let
+        ( group, seed ) =
+            newGroup model.seed
+
+        groups =
+            case preceedingGroup of
+                Just preceedingGroup ->
+                    List.concatMap
+                        (\g ->
+                            if g == preceedingGroup then
+                                [ preceedingGroup, group ]
+                            else
+                                [ g ]
+                        )
+                        model.groups
+
+                Nothing ->
+                    [ group ]
+    in
+        { model | groups = groups, seed = seed }
 
 
 updateSeed : Seed -> Model -> Model
@@ -105,9 +182,23 @@ fromJson =
         (field "seed" Random.Pcg.fromJson)
 
 
-deserialize : String -> Result String Model
-deserialize jsonStr =
-    decodeString fromJson jsonStr
+deserialize : Maybe String -> Model -> Model
+deserialize jsonStr model =
+    case jsonStr of
+        Nothing ->
+            model
+
+        Just jsonStr ->
+            case (decodeString fromJson jsonStr) of
+                Ok loadedModel ->
+                    loadedModel
+
+                Err str ->
+                    let
+                        _ =
+                            Debug.log "Error" str
+                    in
+                        model
 
 
 
