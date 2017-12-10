@@ -1,22 +1,11 @@
-port module Model exposing (Task, Group, Model, addNewGroup, addNewTask, removeTask, removeGroup, updateTask, updateGroup, loadModel, saveModel, serialize, deserialize, onModelLoaded)
+port module Model exposing (addNewGroup, addNewTask, deserialize, loadModel, onModelLoaded, removeGroup, removeTask, saveModel, serialize, updateGroup, updateTask)
 
-import Uuid exposing (Uuid, uuidGenerator)
-import Random.Pcg exposing (Seed, step)
-import Json.Encode exposing (encode, string, object, bool, Value)
-import Json.Decode exposing (decodeString, field)
 import Debug
-
-
-type alias Task =
-    { uuid : Uuid, description : String, isDone : Bool, isFocused : Bool }
-
-
-type alias Group =
-    { uuid : Uuid, title : String, tasks : List Task }
-
-
-type alias Model =
-    { groups : List Group, seed : Seed }
+import Json.Decode exposing (decodeString, field)
+import Json.Encode exposing (Value, bool, encode, object, string)
+import Random.Pcg exposing (Seed, step)
+import Types exposing (..)
+import Uuid exposing (Uuid, uuidGenerator)
 
 
 port setLocalStorage : String -> Cmd msg
@@ -38,12 +27,12 @@ newGroup seed =
         ( uuid, newSeed ) =
             step uuidGenerator seed
     in
-        ( { uuid = uuid
-          , title = ""
-          , tasks = []
-          }
-        , newSeed
-        )
+    ( { uuid = uuid
+      , title = ""
+      , tasks = []
+      }
+    , newSeed
+    )
 
 
 newTask : Seed -> ( Task, Seed )
@@ -52,13 +41,13 @@ newTask seed =
         ( uuid, newSeed ) =
             step uuidGenerator seed
     in
-        ( { uuid = uuid
-          , description = ""
-          , isFocused = True
-          , isDone = False
-          }
-        , newSeed
-        )
+    ( { uuid = uuid
+      , description = ""
+      , isFocused = True
+      , isDone = False
+      }
+    , newSeed
+    )
 
 
 updateGroupTask : Group -> Task -> Group
@@ -70,7 +59,7 @@ updateGroupTask group newTask =
             else
                 task
     in
-        { group | tasks = (List.map updateTask group.tasks) }
+    { group | tasks = List.map updateTask group.tasks }
 
 
 updateTask : Model -> Group -> Task -> Model
@@ -86,14 +75,14 @@ addNewTask model group =
         ( task, seed ) =
             newTask model.seed
     in
-        { group | tasks = group.tasks ++ [ task ] }
-            |> updateGroup model
-            |> updateSeed seed
+    { group | tasks = group.tasks ++ [ task ] }
+        |> updateGroup model
+        |> updateSeed seed
 
 
 removeTask : Model -> Group -> Task -> Model
 removeTask model group task =
-    (List.filter (\aTask -> task.uuid /= aTask.uuid) group.tasks)
+    List.filter (\aTask -> task.uuid /= aTask.uuid) group.tasks
         |> asTasksIn group
         |> updateGroup model
 
@@ -107,12 +96,12 @@ updateGroup model newGroup =
             else
                 group
     in
-        { model | groups = List.map updateGroup model.groups }
+    { model | groups = List.map updateGroup model.groups }
 
 
 removeGroup : Model -> Group -> Model
 removeGroup model group =
-    { model | groups = (List.filter (\aGrp -> group.uuid /= aGrp.uuid) model.groups) }
+    { model | groups = List.filter (\aGrp -> group.uuid /= aGrp.uuid) model.groups }
 
 
 addNewGroup : Model -> Maybe Group -> Model
@@ -136,7 +125,7 @@ addNewGroup model preceedingGroup =
                 Nothing ->
                     [ group ]
     in
-        { model | groups = groups, seed = seed }
+    { model | groups = groups, seed = seed }
 
 
 updateSeed : Seed -> Model -> Model
@@ -189,7 +178,7 @@ deserialize jsonStr model =
             model
 
         Just jsonStr ->
-            case (decodeString fromJson jsonStr) of
+            case decodeString fromJson jsonStr of
                 Ok loadedModel ->
                     loadedModel
 
@@ -198,7 +187,7 @@ deserialize jsonStr model =
                         _ =
                             Debug.log "Error" str
                     in
-                        { model | groups = [] }
+                    { model | groups = [] }
 
 
 
