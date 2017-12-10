@@ -18,13 +18,12 @@ type Msg
     = GroupTitle Group String
     | TaskDescription Group Task String
     | TaskIsDone Group Task
-    | TaskEdit Group Task
     | TaskRemove Group Task
     | TaskSave Group Task
     | TaskNew Group
     | GroupRemove Group
     | GroupNew (Maybe Group)
-    | Load
+    | Import
     | OnLoad (Maybe String)
 
 
@@ -71,17 +70,10 @@ update msg model =
             in
                 ( newModel, saveModel newModel )
 
-        TaskEdit group task ->
-            let
-                newModel =
-                    updateTask model group { task | isEditing = True }
-            in
-                ( newModel, saveModel newModel )
-
         TaskSave group task ->
             let
                 newModel =
-                    updateTask model group { task | isEditing = False }
+                    updateTask model group { task | isFocused = False }
             in
                 ( newModel, saveModel newModel )
 
@@ -99,8 +91,8 @@ update msg model =
             in
                 ( newModel, saveModel newModel )
 
-        Load ->
-            ( model, loadModel () )
+        Import ->
+            ( model, Cmd.none )
 
         GroupNew preceedingGroup ->
             let
@@ -137,6 +129,7 @@ type Styles
     = None
     | JobLog
     | Header
+    | Content
     | Title
     | Group
     | TitleField
@@ -217,9 +210,10 @@ stylesheet =
             , Font.lineHeight 1.3
             ]
         , style Header
-            [ Border.bottom 1
-            , Color.border colorBackgroundAlt
+            [ Color.background (Color.rgb 25 25 25)
             ]
+        , style Content
+            []
         , style Title
             [ Font.size 20
             ]
@@ -249,10 +243,10 @@ stylesheet =
         ]
 
 
-inputField : Styles -> String -> (String -> Msg) -> String -> Element Styles variation Msg
+inputField : Styles -> String -> (String -> msg) -> String -> Element Styles variation msg
 inputField style value msg placeholder =
     Input.text style
-        [ paddingTop 15, paddingBottom 15 ]
+        [ paddingXY 0 15 ]
         { onChange = msg
         , value = value
         , options = []
@@ -269,7 +263,7 @@ type ButtonContent
     | Text String
 
 
-btn : Msg -> ButtonContent -> Element Styles variation Msg
+btn : msg -> ButtonContent -> Element Styles variation msg
 btn msg content =
     let
         ( style, element ) =
@@ -280,10 +274,20 @@ btn msg content =
                 Text str ->
                     ( Button, text str )
     in
-        button style [ onClick msg, paddingTop 3, paddingBottom 3, paddingLeft 8, paddingRight 8 ] element
+        button style [ onClick msg, paddingXY 8 3 ] element
 
 
-indicator : Bool -> Element Styles variation Msg
+exportBtn : Model -> Element Styles variation msg
+exportBtn model =
+    let
+        src =
+            "data:application/octet-stream," ++ (serialize model)
+    in
+        downloadAs { src = src, filename = "job-log.json" } <|
+            (el Button [ paddingXY 8 3 ] (text "Export"))
+
+
+indicator : Bool -> Element Styles variation msg
 indicator isDone =
     let
         style =
@@ -307,14 +311,25 @@ view model =
         viewport stylesheet <|
             column JobLog
                 [ height (percent 100), width (percent 100), center ]
-                [ column None
-                    (commonSpacing ++ [ width (px 800) ])
-                    [ row Header
-                        [ spread, paddingTop 10, paddingBottom 10 ]
+                [ row
+                    Header
+                    [ width (percent 100), center ]
+                    [ row None
+                        (commonSpacing ++ [ width (px 800), spread, paddingXY 0 10 ])
                         [ h1 Title [] (text "Job Log")
-                        , btn Load (Text "Load")
+                        , row None
+                            (commonSpacing ++ [ alignRight ])
+                            [ btn Import (Text "Import")
+                            , (exportBtn model)
+                            ]
                         ]
-                    , column None commonSpacing content
+                    ]
+                , row Content
+                    [ width (percent 100), center, yScrollbar ]
+                    [ column None
+                        (commonSpacing ++ [ width (px 800) ])
+                        [ column None commonSpacing content
+                        ]
                     ]
                 ]
 
@@ -365,6 +380,6 @@ viewTask style group task =
     row style
         commonSpacing
         [ indicator task.isDone
-        , el None [ width fill, paddingTop 15, paddingBottom 15 ] (text task.description)
+        , el None [ width fill, paddingXY 0 15 ] (text task.description)
         , btn (TaskIsDone group task) (Text "Edit")
         ]

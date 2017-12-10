@@ -1,4 +1,4 @@
-port module Model exposing (Task, Group, Model, addNewGroup, addNewTask, removeTask, removeGroup, updateTask, updateGroup, loadModel, saveModel, deserialize, onModelLoaded)
+port module Model exposing (Task, Group, Model, addNewGroup, addNewTask, removeTask, removeGroup, updateTask, updateGroup, loadModel, saveModel, serialize, deserialize, onModelLoaded)
 
 import Uuid exposing (Uuid, uuidGenerator)
 import Random.Pcg exposing (Seed, step)
@@ -8,7 +8,7 @@ import Debug
 
 
 type alias Task =
-    { uuid : Uuid, description : String, isDone : Bool, isEditing : Bool }
+    { uuid : Uuid, description : String, isDone : Bool, isFocused : Bool }
 
 
 type alias Group =
@@ -54,7 +54,7 @@ newTask seed =
     in
         ( { uuid = uuid
           , description = ""
-          , isEditing = True
+          , isFocused = True
           , isDone = False
           }
         , newSeed
@@ -164,7 +164,7 @@ taskFromJson =
         (field "uuid" Uuid.decoder)
         (field "description" Json.Decode.string)
         (field "isDone" Json.Decode.bool)
-        (field "isEditing" Json.Decode.bool)
+        (field "isFocused" Json.Decode.bool)
 
 
 groupFromJson : Json.Decode.Decoder Group
@@ -198,7 +198,7 @@ deserialize jsonStr model =
                         _ =
                             Debug.log "Error" str
                     in
-                        model
+                        { model | groups = [] }
 
 
 
@@ -216,7 +216,7 @@ taskJson task =
         [ ( "uuid", Uuid.encode task.uuid )
         , ( "description", string task.description )
         , ( "isDone", bool task.isDone )
-        , ( "isEditing", bool task.isEditing )
+        , ( "isFocused", bool task.isFocused )
         ]
 
 
