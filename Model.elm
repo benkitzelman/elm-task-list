@@ -1,22 +1,11 @@
-port module Model exposing (Task, Group, Model, addNewGroup, addNewTask, removeTask, removeGroup, updateTask, updateGroup, loadModel, saveModel, serialize, deserialize, onModelLoaded)
+port module Model exposing (draggedTask, moveTaskToGroup, parentGroup, addNewGroup, addNewTask, removeTask, removeGroup, updateTask, updateGroup, loadModel, saveModel, serialize, deserialize, onModelLoaded)
 
 import Uuid exposing (Uuid, uuidGenerator)
 import Random.Pcg exposing (Seed, step)
 import Json.Encode exposing (encode, string, object, bool, Value)
 import Json.Decode exposing (decodeString, field)
+import Types exposing (..)
 import Debug
-
-
-type alias Task =
-    { uuid : Uuid, description : String, isDone : Bool, isFocused : Bool }
-
-
-type alias Group =
-    { uuid : Uuid, title : String, tasks : List Task }
-
-
-type alias Model =
-    { groups : List Group, seed : Seed }
 
 
 port setLocalStorage : String -> Cmd msg
@@ -26,6 +15,30 @@ port getLocalStorage : () -> Cmd msg
 
 
 port onModelLoaded : (Maybe String -> msg) -> Sub msg
+
+
+
+-- Finders
+
+
+allTasks : Model -> List Task
+allTasks model =
+    List.concatMap (\g -> g.tasks) model.groups
+
+
+draggedTask : Model -> Maybe Task
+draggedTask model =
+    List.head (List.filter (\t -> t.isDragging == True) (allTasks model))
+
+
+isInGroup : Task -> Group -> Bool
+isInGroup task group =
+    List.any (\t -> t.uuid == task.uuid) group.tasks
+
+
+parentGroup : Task -> Model -> Maybe Group
+parentGroup task model =
+    List.head (List.filter (isInGroup task) model.groups)
 
 
 
@@ -54,8 +67,8 @@ newTask seed =
     in
         ( { uuid = uuid
           , description = ""
-          , isFocused = True
           , isDone = False
+          , isDragging = False
           }
         , newSeed
         )
@@ -80,19 +93,37 @@ updateTask model group newTask =
         |> updateGroup model
 
 
-addNewTask : Model -> Group -> Model
+addNewTask : Model -> Group -> ( Model, Task )
 addNewTask model group =
     let
         ( task, seed ) =
             newTask model.seed
     in
-        { group | tasks = group.tasks ++ [ task ] }
+        ( { group | tasks = group.tasks ++ [ task ] }
             |> updateGroup model
             |> updateSeed seed
+            |> updateFocus task
+        , task
+        )
 
 
-removeTask : Model -> Group -> Task -> Model
-removeTask model group task =
+moveTaskToGroup : Model -> Group -> Group -> Task -> Model
+moveTaskToGroup model fromGroup group task =
+    let
+        newModel =
+            if fromGroup == group then
+                updateTask model group task
+            else
+                (group.tasks ++ [ task ])
+                    |> asTasksIn group
+                    |> updateGroup model
+                    |> removeTask task fromGroup
+    in
+        newModel
+
+
+removeTask : Task -> Group -> Model -> Model
+removeTask task group model =
     (List.filter (\aTask -> task.uuid /= aTask.uuid) group.tasks)
         |> asTasksIn group
         |> updateGroup model
@@ -144,6 +175,11 @@ updateSeed seed model =
     { model | seed = seed }
 
 
+updateFocus : Task -> Model -> Model
+updateFocus task model =
+    { model | focusedTaskUuid = Just task.uuid }
+
+
 asTasksIn : Group -> List Task -> Group
 asTasksIn group tasks =
     { group | tasks = tasks }
@@ -164,7 +200,7 @@ taskFromJson =
         (field "uuid" Uuid.decoder)
         (field "description" Json.Decode.string)
         (field "isDone" Json.Decode.bool)
-        (field "isFocused" Json.Decode.bool)
+        (field "isDragging" Json.Decode.bool)
 
 
 groupFromJson : Json.Decode.Decoder Group
@@ -177,9 +213,10 @@ groupFromJson =
 
 fromJson : Json.Decode.Decoder Model
 fromJson =
-    Json.Decode.map2 Model
+    Json.Decode.map3 Model
         (field "groups" (Json.Decode.list groupFromJson))
         (field "seed" Random.Pcg.fromJson)
+        (field "focusedTaskUuid" (Json.Decode.nullable Uuid.decoder))
 
 
 deserialize : Maybe String -> Model -> Model
@@ -216,7 +253,7 @@ taskJson task =
         [ ( "uuid", Uuid.encode task.uuid )
         , ( "description", string task.description )
         , ( "isDone", bool task.isDone )
-        , ( "isFocused", bool task.isFocused )
+        , ( "isDragging", bool False )
         ]
 
 
@@ -231,10 +268,20 @@ groupJson group =
 
 toJson : Model -> Value
 toJson model =
-    object
-        [ ( "groups", Json.Encode.list (List.map groupJson model.groups) )
-        , ( "seed", Random.Pcg.toJson model.seed )
-        ]
+    let
+        uuidEncoder =
+            case model.focusedTaskUuid of
+                Nothing ->
+                    Json.Encode.null
+
+                Just uuid ->
+                    Uuid.encode uuid
+    in
+        object
+            [ ( "groups", Json.Encode.list (List.map groupJson model.groups) )
+            , ( "seed", Random.Pcg.toJson model.seed )
+            , ( "focusedTaskUuid", Json.Encode.null )
+            ]
 
 
 serialize : Model -> String
