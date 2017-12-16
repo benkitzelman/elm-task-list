@@ -23909,6 +23909,11 @@ var _user$project$Model$deserialize = F2(
 			}
 		}
 	});
+var _user$project$Model$dropTask = function (task) {
+	return _elm_lang$core$Native_Utils.update(
+		task,
+		{isDragging: false});
+};
 var _user$project$Model$asTasksIn = F2(
 	function (group, tasks) {
 		return _elm_lang$core$Native_Utils.update(
@@ -24119,6 +24124,19 @@ var _user$project$Model$parentGroup = F2(
 				_user$project$Model$isInGroup(task),
 				model.groups));
 	});
+var _user$project$Model$dropTaskIn = F2(
+	function (task, model) {
+		var _p10 = A2(_user$project$Model$parentGroup, task, model);
+		if (_p10.ctor === 'Nothing') {
+			return model;
+		} else {
+			return A3(
+				_user$project$Model$updateTask,
+				model,
+				_p10._0,
+				_user$project$Model$dropTask(task));
+		}
+	});
 var _user$project$Model$allTasks = function (model) {
 	return A2(
 		_elm_lang$core$List$concatMap,
@@ -24136,6 +24154,33 @@ var _user$project$Model$draggedTask = function (model) {
 			},
 			_user$project$Model$allTasks(model)));
 };
+var _user$project$Model$dropDraggedTaskInto = F2(
+	function (group, model) {
+		var _p11 = _user$project$Model$draggedTask(model);
+		if (_p11.ctor === 'Nothing') {
+			return model;
+		} else {
+			var _p13 = _p11._0;
+			var _p12 = A2(_user$project$Model$parentGroup, _p13, model);
+			if (_p12.ctor === 'Nothing') {
+				return model;
+			} else {
+				return A4(
+					_user$project$Model$moveTaskToGroup,
+					model,
+					_p12._0,
+					group,
+					_user$project$Model$dropTask(_p13));
+			}
+		}
+	});
+var _user$project$Model$dropAllTasks = function (model) {
+	return A3(
+		_elm_lang$core$List$foldl,
+		_user$project$Model$dropTaskIn,
+		model,
+		_user$project$Model$allTasks(model));
+};
 var _user$project$Model$setLocalStorage = _elm_lang$core$Native_Platform.outgoingPort(
 	'setLocalStorage',
 	function (v) {
@@ -24150,8 +24195,8 @@ var _user$project$Model$getLocalStorage = _elm_lang$core$Native_Platform.outgoin
 	function (v) {
 		return null;
 	});
-var _user$project$Model$loadModel = function (_p10) {
-	var _p11 = _p10;
+var _user$project$Model$loadModel = function (_p14) {
+	var _p15 = _p14;
 	return _user$project$Model$getLocalStorage(
 		{ctor: '_Tuple0'});
 };
@@ -24993,33 +25038,12 @@ var _user$project$App$update = F2(
 						{isDragging: true}));
 				return {ctor: '_Tuple2', _0: newModel, _1: _elm_lang$core$Platform_Cmd$none};
 			case 'TaskDrop':
-				var _p9 = _p0._0;
 				var newModel = function () {
-					var _p3 = _user$project$Model$draggedTask(model);
+					var _p3 = _p0._0;
 					if (_p3.ctor === 'Nothing') {
-						return model;
+						return _user$project$Model$dropAllTasks(model);
 					} else {
-						var _p8 = _p3._0;
-						var newTask = _elm_lang$core$Native_Utils.update(
-							_p8,
-							{isDragging: false});
-						var _p4 = A2(_user$project$Model$parentGroup, _p8, model);
-						if (_p4.ctor === 'Nothing') {
-							var _p5 = _p9;
-							if (_p5.ctor === 'Nothing') {
-								return model;
-							} else {
-								return A3(_user$project$Model$updateTask, model, _p5._0, newTask);
-							}
-						} else {
-							var _p7 = _p4._0;
-							var _p6 = _p9;
-							if (_p6.ctor === 'Nothing') {
-								return A3(_user$project$Model$updateTask, model, _p7, newTask);
-							} else {
-								return A4(_user$project$Model$moveTaskToGroup, model, _p7, _p6._0, newTask);
-							}
-						}
+						return A2(_user$project$Model$dropDraggedTaskInto, _p3._0, model);
 					}
 				}();
 				return {ctor: '_Tuple2', _0: newModel, _1: _elm_lang$core$Platform_Cmd$none};

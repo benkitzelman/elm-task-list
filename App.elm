@@ -80,31 +80,12 @@ update msg model =
         TaskDrop group ->
             let
                 newModel =
-                    case (draggedTask model) of
+                    case group of
                         Nothing ->
-                            model
+                            dropAllTasks model
 
-                        Just task ->
-                            let
-                                newTask =
-                                    { task | isDragging = False }
-                            in
-                                case (parentGroup task model) of
-                                    Nothing ->
-                                        case group of
-                                            Nothing ->
-                                                model
-
-                                            Just group ->
-                                                updateTask model group newTask
-
-                                    Just fromGroup ->
-                                        case group of
-                                            Nothing ->
-                                                updateTask model fromGroup newTask
-
-                                            Just toGroup ->
-                                                moveTaskToGroup model fromGroup toGroup newTask
+                        Just group ->
+                            dropDraggedTaskInto group model
             in
                 ( newModel, Cmd.none )
 

@@ -1,4 +1,4 @@
-port module Model exposing (draggedTask, moveTaskToGroup, parentGroup, addNewGroup, addNewTask, removeTask, removeGroup, updateTask, updateGroup, loadModel, saveModel, serialize, deserialize, onModelLoaded)
+port module Model exposing (draggedTask, dropDraggedTaskInto, dropAllTasks, dropTaskIn, moveTaskToGroup, parentGroup, addNewGroup, addNewTask, removeTask, removeGroup, updateTask, updateGroup, loadModel, saveModel, serialize, deserialize, onModelLoaded)
 
 import Uuid exposing (Uuid, uuidGenerator)
 import Random.Pcg exposing (Seed, step)
@@ -183,6 +183,41 @@ updateFocus task model =
 asTasksIn : Group -> List Task -> Group
 asTasksIn group tasks =
     { group | tasks = tasks }
+
+
+dropDraggedTaskInto : Group -> Model -> Model
+dropDraggedTaskInto group model =
+    case (draggedTask model) of
+        Nothing ->
+            model
+
+        Just task ->
+            case (parentGroup task model) of
+                Nothing ->
+                    model
+
+                Just fromGroup ->
+                    moveTaskToGroup model fromGroup group (dropTask task)
+
+
+dropTask : Task -> Task
+dropTask task =
+    { task | isDragging = False }
+
+
+dropTaskIn : Task -> Model -> Model
+dropTaskIn task model =
+    case (parentGroup task model) of
+        Nothing ->
+            model
+
+        Just group ->
+            updateTask model group (dropTask task)
+
+
+dropAllTasks : Model -> Model
+dropAllTasks model =
+    List.foldl (dropTaskIn) model (allTasks model)
 
 
 
