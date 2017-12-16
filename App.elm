@@ -84,9 +84,6 @@ update msg model =
 
         TaskDrop group ->
             let
-                _ =
-                    Debug.log "group" (toString group)
-
                 newModel =
                     case group of
                         Nothing ->

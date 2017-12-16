@@ -11,6 +11,7 @@ import Element.Input as Input
 import Style exposing (..)
 import Style.Border as Border
 import Style.Color as Color
+import Style.Background as Background
 import Style.Font as Font
 import Color exposing (Color)
 
@@ -31,6 +32,7 @@ type Styles
     | TaskPending
     | DoneIndicator
     | PendingIndicator
+    | Github
 
 
 colorHighlight : Color
@@ -90,7 +92,14 @@ taskStyle =
 
 xyCoord : Int -> Int -> Attribute variation msg
 xyCoord xCoord yCoord =
-    toAttr (HtmlAttrs.style [ ( "position", "fixed" ), ( "top", (toString yCoord) ++ "px" ), ( "left", (toString xCoord) ++ "px" ) ])
+    toAttr
+        (HtmlAttrs.style
+            [ ( "position", "fixed" )
+            , ( "top", (toString yCoord) ++ "px" )
+            , ( "left", (toString xCoord) ++ "px" )
+            , ( "z-index", "1" )
+            ]
+        )
 
 
 stylesheet : StyleSheet Styles variation
@@ -131,6 +140,18 @@ stylesheet =
             buttonStyle
         , style ImageButton
             [ Color.background colorTransparent
+            ]
+        , style Github
+            [ Background.imageWith
+                { src = "/assets/images/GitHub-Mark-Light-32px.png"
+                , position = ( 0, 0 )
+                , repeat = Background.noRepeat
+                , size = (Background.width (px 25))
+                }
+            , opacity 0.5
+            , hover
+                [ opacity 1
+                ]
             ]
         , style MoveHandle
             (buttonStyle ++ [ Style.cursor "move !important" ])
@@ -186,7 +207,7 @@ exportBtn model =
             "data:application/octet-stream," ++ (serialize model)
     in
         downloadAs { src = src, filename = "job-log.json" } <|
-            (el Button [ paddingXY 8 3 ] (text "Export"))
+            (el Button [ paddingXY 8 3, spacingXY 0 10 ] (text "Export"))
 
 
 indicator : Bool -> Element Styles variation msg
@@ -220,8 +241,11 @@ view model =
                     Header
                     [ width (percent 100), center ]
                     [ row None
-                        (commonSpacing ++ [ width (px 800), spread, paddingXY 0 10 ])
-                        [ h1 Title [] (text "Job Log")
+                        (commonSpacing ++ [ width (px 600), spread, paddingXY 0 10 ])
+                        [ h1 Title [ verticalCenter ] (text "Job Log")
+                        , (newTab "https://github.com/benkitzelman/elm-task-list" <|
+                            el Github [ padding 5, paddingLeft 30, spacingXY 0 8 ] (text "View it on Github")
+                          )
                         , row None
                             (commonSpacing ++ [ alignRight ])
                             [ btn (Text "Import") [ onClick Import ]
@@ -232,7 +256,7 @@ view model =
                 , row Content
                     [ width (percent 100), center, yScrollbar ]
                     [ column None
-                        (commonSpacing ++ [ width (px 800) ])
+                        (commonSpacing ++ [ width (px 600) ])
                         [ column None commonSpacing content
                         ]
                     ]
@@ -287,7 +311,7 @@ editTask style model group task =
                         []
 
                     Just pos ->
-                        [ xyCoord pos.x pos.y ]
+                        [ xyCoord pos.x (pos.y + 20) ]
             else
                 []
     in

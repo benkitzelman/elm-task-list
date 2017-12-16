@@ -23687,6 +23687,93 @@ var _mdgriffith$style_elements$Element_Input$select = F3(
 		}
 	});
 
+var _mdgriffith$style_elements$Style_Background$noRepeat = _mdgriffith$style_elements$Style_Internal_Model$NoRepeat;
+var _mdgriffith$style_elements$Style_Background$stretch = _mdgriffith$style_elements$Style_Internal_Model$Round;
+var _mdgriffith$style_elements$Style_Background$space = _mdgriffith$style_elements$Style_Internal_Model$Space;
+var _mdgriffith$style_elements$Style_Background$repeat = _mdgriffith$style_elements$Style_Internal_Model$Repeat;
+var _mdgriffith$style_elements$Style_Background$repeatY = _mdgriffith$style_elements$Style_Internal_Model$RepeatY;
+var _mdgriffith$style_elements$Style_Background$repeatX = _mdgriffith$style_elements$Style_Internal_Model$RepeatX;
+var _mdgriffith$style_elements$Style_Background$imageWith = function (attrs) {
+	return _mdgriffith$style_elements$Style_Internal_Model$Background(
+		_mdgriffith$style_elements$Style_Internal_Model$BackgroundImage(attrs));
+};
+var _mdgriffith$style_elements$Style_Background$size = _mdgriffith$style_elements$Style_Internal_Model$BackgroundSize;
+var _mdgriffith$style_elements$Style_Background$height = _mdgriffith$style_elements$Style_Internal_Model$BackgroundHeight;
+var _mdgriffith$style_elements$Style_Background$width = _mdgriffith$style_elements$Style_Internal_Model$BackgroundWidth;
+var _mdgriffith$style_elements$Style_Background$natural = _mdgriffith$style_elements$Style_Background$size(
+	{height: _mdgriffith$style_elements$Style_Internal_Model$Auto, width: _mdgriffith$style_elements$Style_Internal_Model$Auto});
+var _mdgriffith$style_elements$Style_Background$cover = _mdgriffith$style_elements$Style_Internal_Model$Cover;
+var _mdgriffith$style_elements$Style_Background$contain = _mdgriffith$style_elements$Style_Internal_Model$Contain;
+var _mdgriffith$style_elements$Style_Background$coverImage = function (src) {
+	return _mdgriffith$style_elements$Style_Internal_Model$Background(
+		_mdgriffith$style_elements$Style_Internal_Model$BackgroundImage(
+			{
+				src: src,
+				position: {ctor: '_Tuple2', _0: 0, _1: 0},
+				repeat: _mdgriffith$style_elements$Style_Background$noRepeat,
+				size: _mdgriffith$style_elements$Style_Background$cover
+			}));
+};
+var _mdgriffith$style_elements$Style_Background$image = function (src) {
+	return _mdgriffith$style_elements$Style_Internal_Model$Background(
+		_mdgriffith$style_elements$Style_Internal_Model$BackgroundImage(
+			{
+				src: src,
+				position: {ctor: '_Tuple2', _0: 0, _1: 0},
+				repeat: _mdgriffith$style_elements$Style_Background$noRepeat,
+				size: _mdgriffith$style_elements$Style_Background$natural
+			}));
+};
+var _mdgriffith$style_elements$Style_Background$gradientBottomLeft = function (steps) {
+	return _mdgriffith$style_elements$Style_Internal_Model$Background(
+		A2(_mdgriffith$style_elements$Style_Internal_Model$BackgroundLinearGradient, _mdgriffith$style_elements$Style_Internal_Model$ToBottomLeft, steps));
+};
+var _mdgriffith$style_elements$Style_Background$gradientTopLeft = function (steps) {
+	return _mdgriffith$style_elements$Style_Internal_Model$Background(
+		A2(_mdgriffith$style_elements$Style_Internal_Model$BackgroundLinearGradient, _mdgriffith$style_elements$Style_Internal_Model$ToTopLeft, steps));
+};
+var _mdgriffith$style_elements$Style_Background$gradientLeft = function (steps) {
+	return _mdgriffith$style_elements$Style_Internal_Model$Background(
+		A2(_mdgriffith$style_elements$Style_Internal_Model$BackgroundLinearGradient, _mdgriffith$style_elements$Style_Internal_Model$ToLeft, steps));
+};
+var _mdgriffith$style_elements$Style_Background$gradientBottomRight = function (steps) {
+	return _mdgriffith$style_elements$Style_Internal_Model$Background(
+		A2(_mdgriffith$style_elements$Style_Internal_Model$BackgroundLinearGradient, _mdgriffith$style_elements$Style_Internal_Model$ToBottomRight, steps));
+};
+var _mdgriffith$style_elements$Style_Background$gradientTopRight = function (steps) {
+	return _mdgriffith$style_elements$Style_Internal_Model$Background(
+		A2(_mdgriffith$style_elements$Style_Internal_Model$BackgroundLinearGradient, _mdgriffith$style_elements$Style_Internal_Model$ToTopRight, steps));
+};
+var _mdgriffith$style_elements$Style_Background$gradientRight = function (steps) {
+	return _mdgriffith$style_elements$Style_Internal_Model$Background(
+		A2(_mdgriffith$style_elements$Style_Internal_Model$BackgroundLinearGradient, _mdgriffith$style_elements$Style_Internal_Model$ToRight, steps));
+};
+var _mdgriffith$style_elements$Style_Background$gradientDown = function (steps) {
+	return _mdgriffith$style_elements$Style_Internal_Model$Background(
+		A2(_mdgriffith$style_elements$Style_Internal_Model$BackgroundLinearGradient, _mdgriffith$style_elements$Style_Internal_Model$ToDown, steps));
+};
+var _mdgriffith$style_elements$Style_Background$gradientUp = function (steps) {
+	return _mdgriffith$style_elements$Style_Internal_Model$Background(
+		A2(_mdgriffith$style_elements$Style_Internal_Model$BackgroundLinearGradient, _mdgriffith$style_elements$Style_Internal_Model$ToUp, steps));
+};
+var _mdgriffith$style_elements$Style_Background$gradient = F2(
+	function (angle, steps) {
+		return _mdgriffith$style_elements$Style_Internal_Model$Background(
+			A2(
+				_mdgriffith$style_elements$Style_Internal_Model$BackgroundLinearGradient,
+				_mdgriffith$style_elements$Style_Internal_Model$ToAngle(angle),
+				steps));
+	});
+var _mdgriffith$style_elements$Style_Background$px = F2(
+	function (p, c) {
+		return A2(_mdgriffith$style_elements$Style_Internal_Model$PxStep, c, p);
+	});
+var _mdgriffith$style_elements$Style_Background$percent = F2(
+	function (p, c) {
+		return A2(_mdgriffith$style_elements$Style_Internal_Model$PercentStep, c, p);
+	});
+var _mdgriffith$style_elements$Style_Background$step = _mdgriffith$style_elements$Style_Internal_Model$ColorStep;
+
 var _mdgriffith$style_elements$Style_Border$roundBottomLeft = function (x) {
 	return A2(
 		_mdgriffith$style_elements$Style_Internal_Model$Exact,
@@ -24459,7 +24546,11 @@ var _user$project$Views$xyCoord = F2(
 									_elm_lang$core$Basics$toString(xCoord),
 									'px')
 							},
-							_1: {ctor: '[]'}
+							_1: {
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: 'z-index', _1: '1'},
+								_1: {ctor: '[]'}
+							}
 						}
 					}
 				}));
@@ -24512,6 +24603,7 @@ var _user$project$Views$buttonStyle = {
 		}
 	}
 };
+var _user$project$Views$Github = {ctor: 'Github'};
 var _user$project$Views$PendingIndicator = {ctor: 'PendingIndicator'};
 var _user$project$Views$DoneIndicator = {ctor: 'DoneIndicator'};
 var _user$project$Views$indicator = function (isDone) {
@@ -24546,7 +24638,11 @@ var _user$project$Views$exportBtn = function (model) {
 			{
 				ctor: '::',
 				_0: A2(_mdgriffith$style_elements$Element_Attributes$paddingXY, 8, 3),
-				_1: {ctor: '[]'}
+				_1: {
+					ctor: '::',
+					_0: A2(_mdgriffith$style_elements$Element_Attributes$spacingXY, 0, 10),
+					_1: {ctor: '[]'}
+				}
 			},
 			_mdgriffith$style_elements$Element$text('Export')));
 };
@@ -24687,38 +24783,69 @@ var _user$project$Views$stylesheet = _mdgriffith$style_elements$Style$styleSheet
 														ctor: '::',
 														_0: A2(
 															_mdgriffith$style_elements$Style$style,
-															_user$project$Views$MoveHandle,
-															A2(
-																_elm_lang$core$Basics_ops['++'],
-																_user$project$Views$buttonStyle,
-																{
+															_user$project$Views$Github,
+															{
+																ctor: '::',
+																_0: _mdgriffith$style_elements$Style_Background$imageWith(
+																	{
+																		src: '/assets/images/GitHub-Mark-Light-32px.png',
+																		position: {ctor: '_Tuple2', _0: 0, _1: 0},
+																		repeat: _mdgriffith$style_elements$Style_Background$noRepeat,
+																		size: _mdgriffith$style_elements$Style_Background$width(
+																			_mdgriffith$style_elements$Element_Attributes$px(25))
+																	}),
+																_1: {
 																	ctor: '::',
-																	_0: _mdgriffith$style_elements$Style$cursor('move !important'),
-																	_1: {ctor: '[]'}
-																})),
+																	_0: _mdgriffith$style_elements$Style$opacity(0.5),
+																	_1: {
+																		ctor: '::',
+																		_0: _mdgriffith$style_elements$Style$hover(
+																			{
+																				ctor: '::',
+																				_0: _mdgriffith$style_elements$Style$opacity(1),
+																				_1: {ctor: '[]'}
+																			}),
+																		_1: {ctor: '[]'}
+																	}
+																}
+															}),
 														_1: {
 															ctor: '::',
 															_0: A2(
 																_mdgriffith$style_elements$Style$style,
-																_user$project$Views$DoneIndicator,
-																{
-																	ctor: '::',
-																	_0: _mdgriffith$style_elements$Style_Color$background(
-																		A3(_elm_lang$core$Color$rgb, 219, 80, 96)),
-																	_1: {ctor: '[]'}
-																}),
+																_user$project$Views$MoveHandle,
+																A2(
+																	_elm_lang$core$Basics_ops['++'],
+																	_user$project$Views$buttonStyle,
+																	{
+																		ctor: '::',
+																		_0: _mdgriffith$style_elements$Style$cursor('move !important'),
+																		_1: {ctor: '[]'}
+																	})),
 															_1: {
 																ctor: '::',
 																_0: A2(
 																	_mdgriffith$style_elements$Style$style,
-																	_user$project$Views$PendingIndicator,
+																	_user$project$Views$DoneIndicator,
 																	{
 																		ctor: '::',
 																		_0: _mdgriffith$style_elements$Style_Color$background(
-																			A3(_elm_lang$core$Color$rgb, 28, 155, 198)),
+																			A3(_elm_lang$core$Color$rgb, 219, 80, 96)),
 																		_1: {ctor: '[]'}
 																	}),
-																_1: {ctor: '[]'}
+																_1: {
+																	ctor: '::',
+																	_0: A2(
+																		_mdgriffith$style_elements$Style$style,
+																		_user$project$Views$PendingIndicator,
+																		{
+																			ctor: '::',
+																			_0: _mdgriffith$style_elements$Style_Color$background(
+																				A3(_elm_lang$core$Color$rgb, 28, 155, 198)),
+																			_1: {ctor: '[]'}
+																		}),
+																	_1: {ctor: '[]'}
+																}
 															}
 														}
 													}
@@ -24795,7 +24922,7 @@ var _user$project$Views$editTask = F4(
 					var _p3 = _p2._0;
 					return {
 						ctor: '::',
-						_0: A2(_user$project$Views$xyCoord, _p3.x, _p3.y),
+						_0: A2(_user$project$Views$xyCoord, _p3.x, _p3.y + 20),
 						_1: {ctor: '[]'}
 					};
 				}
@@ -25097,7 +25224,7 @@ var _user$project$Views$view = function (model) {
 								{
 									ctor: '::',
 									_0: _mdgriffith$style_elements$Element_Attributes$width(
-										_mdgriffith$style_elements$Element_Attributes$px(800)),
+										_mdgriffith$style_elements$Element_Attributes$px(600)),
 									_1: {
 										ctor: '::',
 										_0: _mdgriffith$style_elements$Element_Attributes$spread,
@@ -25113,38 +25240,65 @@ var _user$project$Views$view = function (model) {
 								_0: A3(
 									_mdgriffith$style_elements$Element$h1,
 									_user$project$Views$Title,
-									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: _mdgriffith$style_elements$Element_Attributes$verticalCenter,
+										_1: {ctor: '[]'}
+									},
 									_mdgriffith$style_elements$Element$text('Job Log')),
 								_1: {
 									ctor: '::',
-									_0: A3(
-										_mdgriffith$style_elements$Element$row,
-										_user$project$Views$None,
-										A2(
-											_elm_lang$core$Basics_ops['++'],
-											_user$project$Views$commonSpacing,
+									_0: A2(
+										_mdgriffith$style_elements$Element$newTab,
+										'https://github.com/benkitzelman/elm-task-list',
+										A3(
+											_mdgriffith$style_elements$Element$el,
+											_user$project$Views$Github,
 											{
 												ctor: '::',
-												_0: _mdgriffith$style_elements$Element_Attributes$alignRight,
-												_1: {ctor: '[]'}
-											}),
-										{
-											ctor: '::',
-											_0: A2(
-												_user$project$Views$btn,
-												_user$project$Views$Text('Import'),
+												_0: _mdgriffith$style_elements$Element_Attributes$padding(5),
+												_1: {
+													ctor: '::',
+													_0: _mdgriffith$style_elements$Element_Attributes$paddingLeft(30),
+													_1: {
+														ctor: '::',
+														_0: A2(_mdgriffith$style_elements$Element_Attributes$spacingXY, 0, 8),
+														_1: {ctor: '[]'}
+													}
+												}
+											},
+											_mdgriffith$style_elements$Element$text('View it on Github'))),
+									_1: {
+										ctor: '::',
+										_0: A3(
+											_mdgriffith$style_elements$Element$row,
+											_user$project$Views$None,
+											A2(
+												_elm_lang$core$Basics_ops['++'],
+												_user$project$Views$commonSpacing,
 												{
 													ctor: '::',
-													_0: _mdgriffith$style_elements$Element_Events$onClick(_user$project$Types$Import),
+													_0: _mdgriffith$style_elements$Element_Attributes$alignRight,
 													_1: {ctor: '[]'}
 												}),
-											_1: {
+											{
 												ctor: '::',
-												_0: _user$project$Views$exportBtn(model),
-												_1: {ctor: '[]'}
-											}
-										}),
-									_1: {ctor: '[]'}
+												_0: A2(
+													_user$project$Views$btn,
+													_user$project$Views$Text('Import'),
+													{
+														ctor: '::',
+														_0: _mdgriffith$style_elements$Element_Events$onClick(_user$project$Types$Import),
+														_1: {ctor: '[]'}
+													}),
+												_1: {
+													ctor: '::',
+													_0: _user$project$Views$exportBtn(model),
+													_1: {ctor: '[]'}
+												}
+											}),
+										_1: {ctor: '[]'}
+									}
 								}
 							}),
 						_1: {ctor: '[]'}
@@ -25179,7 +25333,7 @@ var _user$project$Views$view = function (model) {
 									{
 										ctor: '::',
 										_0: _mdgriffith$style_elements$Element_Attributes$width(
-											_mdgriffith$style_elements$Element_Attributes$px(800)),
+											_mdgriffith$style_elements$Element_Attributes$px(600)),
 										_1: {ctor: '[]'}
 									}),
 								{
@@ -25300,19 +25454,14 @@ var _user$project$App$update = F2(
 						{isDragging: true}));
 				return {ctor: '_Tuple2', _0: newModel, _1: _elm_lang$core$Platform_Cmd$none};
 			case 'TaskDrop':
-				var _p5 = _p0._0;
 				var newModel = function () {
-					var _p3 = _p5;
+					var _p3 = _p0._0;
 					if (_p3.ctor === 'Nothing') {
 						return _user$project$Model$dropAllTasks(model);
 					} else {
 						return A2(_user$project$Model$dropDraggedTaskInto, _p3._0, model);
 					}
 				}();
-				var _p4 = A2(
-					_elm_lang$core$Debug$log,
-					'group',
-					_elm_lang$core$Basics$toString(_p5));
 				return {ctor: '_Tuple2', _0: newModel, _1: _elm_lang$core$Platform_Cmd$none};
 			case 'Import':
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};

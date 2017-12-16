@@ -24,6 +24,7 @@
             "components": {
                 "ext": "js"
             }
-        }
+        },
+        "main": "App.elm"
     }
 }
