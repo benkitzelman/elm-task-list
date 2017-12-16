@@ -10161,6 +10161,189 @@ var _elm_lang$html$Html_Keyed$node = _elm_lang$virtual_dom$VirtualDom$keyedNode;
 var _elm_lang$html$Html_Keyed$ol = _elm_lang$html$Html_Keyed$node('ol');
 var _elm_lang$html$Html_Keyed$ul = _elm_lang$html$Html_Keyed$node('ul');
 
+var _elm_lang$mouse$Mouse_ops = _elm_lang$mouse$Mouse_ops || {};
+_elm_lang$mouse$Mouse_ops['&>'] = F2(
+	function (t1, t2) {
+		return A2(
+			_elm_lang$core$Task$andThen,
+			function (_p0) {
+				return t2;
+			},
+			t1);
+	});
+var _elm_lang$mouse$Mouse$onSelfMsg = F3(
+	function (router, _p1, state) {
+		var _p2 = _p1;
+		var _p3 = A2(_elm_lang$core$Dict$get, _p2.category, state);
+		if (_p3.ctor === 'Nothing') {
+			return _elm_lang$core$Task$succeed(state);
+		} else {
+			var send = function (tagger) {
+				return A2(
+					_elm_lang$core$Platform$sendToApp,
+					router,
+					tagger(_p2.position));
+			};
+			return A2(
+				_elm_lang$mouse$Mouse_ops['&>'],
+				_elm_lang$core$Task$sequence(
+					A2(_elm_lang$core$List$map, send, _p3._0.taggers)),
+				_elm_lang$core$Task$succeed(state));
+		}
+	});
+var _elm_lang$mouse$Mouse$init = _elm_lang$core$Task$succeed(_elm_lang$core$Dict$empty);
+var _elm_lang$mouse$Mouse$categorizeHelpHelp = F2(
+	function (value, maybeValues) {
+		var _p4 = maybeValues;
+		if (_p4.ctor === 'Nothing') {
+			return _elm_lang$core$Maybe$Just(
+				{
+					ctor: '::',
+					_0: value,
+					_1: {ctor: '[]'}
+				});
+		} else {
+			return _elm_lang$core$Maybe$Just(
+				{ctor: '::', _0: value, _1: _p4._0});
+		}
+	});
+var _elm_lang$mouse$Mouse$categorizeHelp = F2(
+	function (subs, subDict) {
+		categorizeHelp:
+		while (true) {
+			var _p5 = subs;
+			if (_p5.ctor === '[]') {
+				return subDict;
+			} else {
+				var _v4 = _p5._1,
+					_v5 = A3(
+					_elm_lang$core$Dict$update,
+					_p5._0._0,
+					_elm_lang$mouse$Mouse$categorizeHelpHelp(_p5._0._1),
+					subDict);
+				subs = _v4;
+				subDict = _v5;
+				continue categorizeHelp;
+			}
+		}
+	});
+var _elm_lang$mouse$Mouse$categorize = function (subs) {
+	return A2(_elm_lang$mouse$Mouse$categorizeHelp, subs, _elm_lang$core$Dict$empty);
+};
+var _elm_lang$mouse$Mouse$subscription = _elm_lang$core$Native_Platform.leaf('Mouse');
+var _elm_lang$mouse$Mouse$Position = F2(
+	function (a, b) {
+		return {x: a, y: b};
+	});
+var _elm_lang$mouse$Mouse$position = A3(
+	_elm_lang$core$Json_Decode$map2,
+	_elm_lang$mouse$Mouse$Position,
+	A2(_elm_lang$core$Json_Decode$field, 'pageX', _elm_lang$core$Json_Decode$int),
+	A2(_elm_lang$core$Json_Decode$field, 'pageY', _elm_lang$core$Json_Decode$int));
+var _elm_lang$mouse$Mouse$Watcher = F2(
+	function (a, b) {
+		return {taggers: a, pid: b};
+	});
+var _elm_lang$mouse$Mouse$Msg = F2(
+	function (a, b) {
+		return {category: a, position: b};
+	});
+var _elm_lang$mouse$Mouse$onEffects = F3(
+	function (router, newSubs, oldState) {
+		var rightStep = F3(
+			function (category, taggers, task) {
+				var tracker = A3(
+					_elm_lang$dom$Dom_LowLevel$onDocument,
+					category,
+					_elm_lang$mouse$Mouse$position,
+					function (_p6) {
+						return A2(
+							_elm_lang$core$Platform$sendToSelf,
+							router,
+							A2(_elm_lang$mouse$Mouse$Msg, category, _p6));
+					});
+				return A2(
+					_elm_lang$core$Task$andThen,
+					function (state) {
+						return A2(
+							_elm_lang$core$Task$andThen,
+							function (pid) {
+								return _elm_lang$core$Task$succeed(
+									A3(
+										_elm_lang$core$Dict$insert,
+										category,
+										A2(_elm_lang$mouse$Mouse$Watcher, taggers, pid),
+										state));
+							},
+							_elm_lang$core$Process$spawn(tracker));
+					},
+					task);
+			});
+		var bothStep = F4(
+			function (category, _p7, taggers, task) {
+				var _p8 = _p7;
+				return A2(
+					_elm_lang$core$Task$andThen,
+					function (state) {
+						return _elm_lang$core$Task$succeed(
+							A3(
+								_elm_lang$core$Dict$insert,
+								category,
+								A2(_elm_lang$mouse$Mouse$Watcher, taggers, _p8.pid),
+								state));
+					},
+					task);
+			});
+		var leftStep = F3(
+			function (category, _p9, task) {
+				var _p10 = _p9;
+				return A2(
+					_elm_lang$mouse$Mouse_ops['&>'],
+					_elm_lang$core$Process$kill(_p10.pid),
+					task);
+			});
+		return A6(
+			_elm_lang$core$Dict$merge,
+			leftStep,
+			bothStep,
+			rightStep,
+			oldState,
+			_elm_lang$mouse$Mouse$categorize(newSubs),
+			_elm_lang$core$Task$succeed(_elm_lang$core$Dict$empty));
+	});
+var _elm_lang$mouse$Mouse$MySub = F2(
+	function (a, b) {
+		return {ctor: 'MySub', _0: a, _1: b};
+	});
+var _elm_lang$mouse$Mouse$clicks = function (tagger) {
+	return _elm_lang$mouse$Mouse$subscription(
+		A2(_elm_lang$mouse$Mouse$MySub, 'click', tagger));
+};
+var _elm_lang$mouse$Mouse$moves = function (tagger) {
+	return _elm_lang$mouse$Mouse$subscription(
+		A2(_elm_lang$mouse$Mouse$MySub, 'mousemove', tagger));
+};
+var _elm_lang$mouse$Mouse$downs = function (tagger) {
+	return _elm_lang$mouse$Mouse$subscription(
+		A2(_elm_lang$mouse$Mouse$MySub, 'mousedown', tagger));
+};
+var _elm_lang$mouse$Mouse$ups = function (tagger) {
+	return _elm_lang$mouse$Mouse$subscription(
+		A2(_elm_lang$mouse$Mouse$MySub, 'mouseup', tagger));
+};
+var _elm_lang$mouse$Mouse$subMap = F2(
+	function (func, _p11) {
+		var _p12 = _p11;
+		return A2(
+			_elm_lang$mouse$Mouse$MySub,
+			_p12._0,
+			function (_p13) {
+				return func(
+					_p12._1(_p13));
+			});
+	});
+_elm_lang$core$Native_Platform.effectManagers['Mouse'] = {pkg: 'elm-lang/mouse', init: _elm_lang$mouse$Mouse$init, onEffects: _elm_lang$mouse$Mouse$onEffects, onSelfMsg: _elm_lang$mouse$Mouse$onSelfMsg, tag: 'sub', subMap: _elm_lang$mouse$Mouse$subMap};
+
 var _elm_lang$window$Native_Window = function()
 {
 
@@ -23714,10 +23897,13 @@ var _user$project$Types$Group = F3(
 	function (a, b, c) {
 		return {uuid: a, title: b, tasks: c};
 	});
-var _user$project$Types$Model = F3(
-	function (a, b, c) {
-		return {groups: a, seed: b, focusedTaskUuid: c};
+var _user$project$Types$Model = F4(
+	function (a, b, c, d) {
+		return {groups: a, seed: b, mouseCoords: c, focusedTaskUuid: d};
 	});
+var _user$project$Types$MouseMove = function (a) {
+	return {ctor: 'MouseMove', _0: a};
+};
 var _user$project$Types$OnLoad = function (a) {
 	return {ctor: 'OnLoad', _0: a};
 };
@@ -23850,8 +24036,12 @@ var _user$project$Model$toJson = function (model) {
 				},
 				_1: {
 					ctor: '::',
-					_0: {ctor: '_Tuple2', _0: 'focusedTaskUuid', _1: _elm_lang$core$Json_Encode$null},
-					_1: {ctor: '[]'}
+					_0: {ctor: '_Tuple2', _0: 'mouseCoords', _1: _elm_lang$core$Json_Encode$null},
+					_1: {
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'focusedTaskUuid', _1: _elm_lang$core$Json_Encode$null},
+						_1: {ctor: '[]'}
+					}
 				}
 			}
 		});
@@ -23878,14 +24068,18 @@ var _user$project$Model$groupFromJson = A4(
 		_elm_lang$core$Json_Decode$field,
 		'tasks',
 		_elm_lang$core$Json_Decode$list(_user$project$Model$taskFromJson)));
-var _user$project$Model$fromJson = A4(
-	_elm_lang$core$Json_Decode$map3,
+var _user$project$Model$fromJson = A5(
+	_elm_lang$core$Json_Decode$map4,
 	_user$project$Types$Model,
 	A2(
 		_elm_lang$core$Json_Decode$field,
 		'groups',
 		_elm_lang$core$Json_Decode$list(_user$project$Model$groupFromJson)),
 	A2(_elm_lang$core$Json_Decode$field, 'seed', _mgold$elm_random_pcg$Random_Pcg$fromJson),
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'mouseCoords',
+		_elm_lang$core$Json_Decode$null(_elm_lang$core$Maybe$Nothing)),
 	A2(
 		_elm_lang$core$Json_Decode$field,
 		'focusedTaskUuid',
@@ -24238,6 +24432,38 @@ var _user$project$Views$inputField = F6(
 					})
 			});
 	});
+var _user$project$Views$xyCoord = F2(
+	function (xCoord, yCoord) {
+		return _mdgriffith$style_elements$Element_Attributes$toAttr(
+			_elm_lang$html$Html_Attributes$style(
+				{
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'position', _1: 'fixed'},
+					_1: {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'top',
+							_1: A2(
+								_elm_lang$core$Basics_ops['++'],
+								_elm_lang$core$Basics$toString(yCoord),
+								'px')
+						},
+						_1: {
+							ctor: '::',
+							_0: {
+								ctor: '_Tuple2',
+								_0: 'left',
+								_1: A2(
+									_elm_lang$core$Basics_ops['++'],
+									_elm_lang$core$Basics$toString(xCoord),
+									'px')
+							},
+							_1: {ctor: '[]'}
+						}
+					}
+				}));
+	});
 var _user$project$Views$taskStyle = {
 	ctor: '::',
 	_0: _mdgriffith$style_elements$Style_Border$bottom(1),
@@ -24560,12 +24786,29 @@ var _user$project$Views$Text = function (a) {
 };
 var _user$project$Views$editTask = F4(
 	function (style, model, group, task) {
+		var posAttrs = function () {
+			if (task.isDragging) {
+				var _p2 = model.mouseCoords;
+				if (_p2.ctor === 'Nothing') {
+					return {ctor: '[]'};
+				} else {
+					var _p3 = _p2._0;
+					return {
+						ctor: '::',
+						_0: A2(_user$project$Views$xyCoord, _p3.x, _p3.y),
+						_1: {ctor: '[]'}
+					};
+				}
+			} else {
+				return {ctor: '[]'};
+			}
+		}();
 		var options = function () {
-			var _p2 = model.focusedTaskUuid;
-			if (_p2.ctor === 'Nothing') {
+			var _p4 = model.focusedTaskUuid;
+			if (_p4.ctor === 'Nothing') {
 				return {ctor: '[]'};
 			} else {
-				return _elm_lang$core$Native_Utils.eq(task.uuid, _p2._0) ? {
+				return _elm_lang$core$Native_Utils.eq(task.uuid, _p4._0) ? {
 					ctor: '::',
 					_0: _mdgriffith$style_elements$Element_Input$focusOnLoad,
 					_1: {ctor: '[]'}
@@ -24575,7 +24818,7 @@ var _user$project$Views$editTask = F4(
 		return A3(
 			_mdgriffith$style_elements$Element$row,
 			style,
-			_user$project$Views$commonSpacing,
+			A2(_elm_lang$core$Basics_ops['++'], _user$project$Views$commonSpacing, posAttrs),
 			{
 				ctor: '::',
 				_0: _user$project$Views$indicator(task.isDone),
@@ -24952,7 +25195,16 @@ var _user$project$Views$view = function (model) {
 };
 
 var _user$project$App$subscriptions = function (model) {
-	return _user$project$Model$onModelLoaded(_user$project$Types$OnLoad);
+	return _elm_lang$core$Platform_Sub$batch(
+		{
+			ctor: '::',
+			_0: _user$project$Model$onModelLoaded(_user$project$Types$OnLoad),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$mouse$Mouse$moves(_user$project$Types$MouseMove),
+				_1: {ctor: '[]'}
+			}
+		});
 };
 var _user$project$App$update = F2(
 	function (msg, model) {
@@ -24960,6 +25212,16 @@ var _user$project$App$update = F2(
 		switch (_p0.ctor) {
 			case 'Ignore':
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			case 'MouseMove':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{
+							mouseCoords: _elm_lang$core$Maybe$Just(_p0._0)
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
 			case 'GroupTitle':
 				var newModel = A2(
 					_user$project$Model$updateGroup,
@@ -25038,14 +25300,19 @@ var _user$project$App$update = F2(
 						{isDragging: true}));
 				return {ctor: '_Tuple2', _0: newModel, _1: _elm_lang$core$Platform_Cmd$none};
 			case 'TaskDrop':
+				var _p5 = _p0._0;
 				var newModel = function () {
-					var _p3 = _p0._0;
+					var _p3 = _p5;
 					if (_p3.ctor === 'Nothing') {
 						return _user$project$Model$dropAllTasks(model);
 					} else {
 						return A2(_user$project$Model$dropDraggedTaskInto, _p3._0, model);
 					}
 				}();
+				var _p4 = A2(
+					_elm_lang$core$Debug$log,
+					'group',
+					_elm_lang$core$Basics$toString(_p5));
 				return {ctor: '_Tuple2', _0: newModel, _1: _elm_lang$core$Platform_Cmd$none};
 			case 'Import':
 				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
@@ -25074,7 +25341,8 @@ var _user$project$App$init = function (flags) {
 		_0: {
 			seed: _mgold$elm_random_pcg$Random_Pcg$initialSeed(flags),
 			groups: {ctor: '[]'},
-			focusedTaskUuid: _elm_lang$core$Maybe$Nothing
+			focusedTaskUuid: _elm_lang$core$Maybe$Nothing,
+			mouseCoords: _elm_lang$core$Maybe$Nothing
 		},
 		_1: _user$project$Model$loadModel(
 			{ctor: '_Tuple0'})

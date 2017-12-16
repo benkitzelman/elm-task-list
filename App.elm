@@ -2,6 +2,7 @@ module App exposing (..)
 
 import Html exposing (Html)
 import Dom exposing (..)
+import Mouse
 import Task exposing (..)
 import Model exposing (..)
 import Types exposing (..)
@@ -24,6 +25,7 @@ init flags =
     ( { seed = (initialSeed flags)
       , groups = []
       , focusedTaskUuid = Nothing
+      , mouseCoords = Nothing
       }
     , loadModel ()
     )
@@ -34,6 +36,9 @@ update msg model =
     case msg of
         Ignore result ->
             ( model, Cmd.none )
+
+        MouseMove pos ->
+            ( { model | mouseCoords = Just pos }, Cmd.none )
 
         GroupTitle group title ->
             let
@@ -79,6 +84,9 @@ update msg model =
 
         TaskDrop group ->
             let
+                _ =
+                    Debug.log "group" (toString group)
+
                 newModel =
                     case group of
                         Nothing ->
@@ -116,4 +124,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    onModelLoaded OnLoad
+    Sub.batch
+        [ onModelLoaded OnLoad
+        , Mouse.moves MouseMove
+        ]

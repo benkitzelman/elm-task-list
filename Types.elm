@@ -1,6 +1,7 @@
 module Types exposing (..)
 
 import Dom exposing (..)
+import Mouse
 import Uuid exposing (Uuid)
 import Random.Pcg exposing (Seed)
 
@@ -14,7 +15,7 @@ type alias Group =
 
 
 type alias Model =
-    { groups : List Group, seed : Seed, focusedTaskUuid : Maybe Uuid }
+    { groups : List Group, seed : Seed, mouseCoords : Maybe Mouse.Position, focusedTaskUuid : Maybe Uuid }
 
 
 type Msg
@@ -30,3 +31,4 @@ type Msg
     | GroupNew (Maybe Group)
     | Import
     | OnLoad (Maybe String)
+    | MouseMove Mouse.Position

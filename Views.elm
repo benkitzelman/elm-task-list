@@ -3,6 +3,7 @@ module Views exposing (view)
 import Types exposing (..)
 import Model exposing (..)
 import Html exposing (Html)
+import Html.Attributes as HtmlAttrs
 import Element exposing (..)
 import Element.Attributes exposing (..)
 import Element.Events exposing (..)
@@ -85,6 +86,11 @@ taskStyle =
     [ Border.bottom 1
     , Color.border (Color.rgba 255 255 255 0.2)
     ]
+
+
+xyCoord : Int -> Int -> Attribute variation msg
+xyCoord xCoord yCoord =
+    toAttr (HtmlAttrs.style [ ( "position", "fixed" ), ( "top", (toString yCoord) ++ "px" ), ( "left", (toString xCoord) ++ "px" ) ])
 
 
 stylesheet : StyleSheet Styles variation
@@ -273,9 +279,20 @@ editTask style model group task =
                         [ Input.focusOnLoad ]
                     else
                         []
+
+        posAttrs =
+            if task.isDragging then
+                case model.mouseCoords of
+                    Nothing ->
+                        []
+
+                    Just pos ->
+                        [ xyCoord pos.x pos.y ]
+            else
+                []
     in
         row style
-            commonSpacing
+            (commonSpacing ++ posAttrs)
             [ indicator task.isDone
             , inputField TextInput (toString task.uuid) task.description (TaskDescription group task) options "Enter task description..."
             , row None
