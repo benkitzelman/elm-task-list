@@ -8,7 +8,6 @@ import Model exposing (..)
 import Types exposing (..)
 import Views exposing (view)
 import Random.Pcg exposing (initialSeed)
-import Debug
 
 
 main : Program Int Model Msg

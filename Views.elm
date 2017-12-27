@@ -14,6 +14,7 @@ import Style exposing (..)
 import Style.Border as Border
 import Style.Color as Color
 import Style.Background as Background
+import Style.Shadow as Shadow
 import Style.Font as Font
 import Color exposing (Color)
 
@@ -182,6 +183,7 @@ stylesheet =
             (fontStyles
                 ++ [ Color.text colorDefault
                    , Color.background colorBackgroundAlt
+                   , Shadow.drop { offset = ( 5, 5 ), blur = 10, color = (Color.rgba 0 0 0 1) }
                    ]
             )
         ]
@@ -250,12 +252,15 @@ exportBtn model =
 importModal : Model -> Element Styles variation Msg
 importModal model =
     modal Modal
-        [ center, verticalCenter, padding 20 ]
+        [ center, verticalCenter ]
         (column None
-            []
-            [ el None [] (text "A Nice Modal")
-            , importFileField "import"
-            , btn (Text "Close") [ onClick CloseImport ]
+            [ spacing 20, padding 20 ]
+            [ el None [] (text "Import a task list")
+            , row None
+                [ spread ]
+                [ importFileField "import"
+                , btn (Text "Cancel") [ onClick CloseImport ]
+                ]
             ]
         )
 

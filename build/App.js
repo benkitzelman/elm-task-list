@@ -23976,6 +23976,127 @@ var _mdgriffith$style_elements$Style_Font$typeface = function (families) {
 	return _mdgriffith$style_elements$Style_Internal_Model$FontFamily(families);
 };
 
+var _mdgriffith$style_elements$Style_Shadow$drop = function (_p0) {
+	var _p1 = _p0;
+	return _mdgriffith$style_elements$Style_Internal_Model$Filters(
+		{
+			ctor: '::',
+			_0: _mdgriffith$style_elements$Style_Internal_Model$DropShadow(
+				{offset: _p1.offset, size: 0, blur: _p1.blur, color: _p1.color}),
+			_1: {ctor: '[]'}
+		});
+};
+var _mdgriffith$style_elements$Style_Shadow$text = function (_p2) {
+	var _p3 = _p2;
+	return _mdgriffith$style_elements$Style_Internal_Model$Shadows(
+		{
+			ctor: '::',
+			_0: _mdgriffith$style_elements$Style_Internal_Model$ShadowModel(
+				{kind: 'text', offset: _p3.offset, size: 0, blur: _p3.blur, color: _p3.color}),
+			_1: {ctor: '[]'}
+		});
+};
+var _mdgriffith$style_elements$Style_Shadow$inset = function (_p4) {
+	var _p5 = _p4;
+	return _mdgriffith$style_elements$Style_Internal_Model$Shadows(
+		{
+			ctor: '::',
+			_0: _mdgriffith$style_elements$Style_Internal_Model$ShadowModel(
+				{kind: 'inset', offset: _p5.offset, size: _p5.size, blur: _p5.blur, color: _p5.color}),
+			_1: {ctor: '[]'}
+		});
+};
+var _mdgriffith$style_elements$Style_Shadow$boxHelper = function (_p6) {
+	var _p7 = _p6;
+	return _mdgriffith$style_elements$Style_Internal_Model$ShadowModel(
+		{kind: 'box', offset: _p7.offset, size: _p7.size, blur: _p7.blur, color: _p7.color});
+};
+var _mdgriffith$style_elements$Style_Shadow$box = function (shadow) {
+	return _mdgriffith$style_elements$Style_Internal_Model$Shadows(
+		{
+			ctor: '::',
+			_0: _mdgriffith$style_elements$Style_Shadow$boxHelper(shadow),
+			_1: {ctor: '[]'}
+		});
+};
+var _mdgriffith$style_elements$Style_Shadow$deep = _mdgriffith$style_elements$Style_Shadow$box(
+	{
+		color: A4(_elm_lang$core$Color$rgba, 0, 0, 0, 0.2),
+		offset: {ctor: '_Tuple2', _0: 0, _1: 14},
+		blur: 20,
+		size: -12
+	});
+var _mdgriffith$style_elements$Style_Shadow$simple = _mdgriffith$style_elements$Style_Internal_Model$Shadows(
+	{
+		ctor: '::',
+		_0: _mdgriffith$style_elements$Style_Shadow$boxHelper(
+			{
+				color: A4(_elm_lang$core$Color$rgba, 0, 0, 0, 0.5),
+				offset: {ctor: '_Tuple2', _0: 0, _1: 29},
+				blur: 32,
+				size: -20
+			}),
+		_1: {
+			ctor: '::',
+			_0: _mdgriffith$style_elements$Style_Shadow$boxHelper(
+				{
+					color: A4(_elm_lang$core$Color$rgba, 0, 0, 0, 0.25),
+					offset: {ctor: '_Tuple2', _0: 0, _1: 4},
+					blur: 11,
+					size: -3
+				}),
+			_1: {ctor: '[]'}
+		}
+	});
+var _mdgriffith$style_elements$Style_Shadow$textGlow = F2(
+	function (color, size) {
+		return _mdgriffith$style_elements$Style_Internal_Model$Shadows(
+			{
+				ctor: '::',
+				_0: _mdgriffith$style_elements$Style_Internal_Model$ShadowModel(
+					{
+						kind: 'text',
+						offset: {ctor: '_Tuple2', _0: 0, _1: 0},
+						size: size,
+						blur: size * 2,
+						color: color
+					}),
+				_1: {ctor: '[]'}
+			});
+	});
+var _mdgriffith$style_elements$Style_Shadow$innerGlow = F2(
+	function (color, size) {
+		return _mdgriffith$style_elements$Style_Internal_Model$Shadows(
+			{
+				ctor: '::',
+				_0: _mdgriffith$style_elements$Style_Internal_Model$ShadowModel(
+					{
+						kind: 'inset',
+						offset: {ctor: '_Tuple2', _0: 0, _1: 0},
+						size: size,
+						blur: size * 2,
+						color: color
+					}),
+				_1: {ctor: '[]'}
+			});
+	});
+var _mdgriffith$style_elements$Style_Shadow$glow = F2(
+	function (color, size) {
+		return _mdgriffith$style_elements$Style_Internal_Model$Shadows(
+			{
+				ctor: '::',
+				_0: _mdgriffith$style_elements$Style_Internal_Model$ShadowModel(
+					{
+						kind: 'box',
+						offset: {ctor: '_Tuple2', _0: 0, _1: 0},
+						size: size,
+						blur: size * 2,
+						color: color
+					}),
+				_1: {ctor: '[]'}
+			});
+	});
+
 var _user$project$Types$Task = F4(
 	function (a, b, c, d) {
 		return {uuid: a, description: b, isDone: c, isDragging: d};
@@ -24920,7 +25041,16 @@ var _user$project$Views$stylesheet = _mdgriffith$style_elements$Style$styleSheet
 																					_1: {
 																						ctor: '::',
 																						_0: _mdgriffith$style_elements$Style_Color$background(_user$project$Views$colorBackgroundAlt),
-																						_1: {ctor: '[]'}
+																						_1: {
+																							ctor: '::',
+																							_0: _mdgriffith$style_elements$Style_Shadow$drop(
+																								{
+																									offset: {ctor: '_Tuple2', _0: 5, _1: 5},
+																									blur: 10,
+																									color: A4(_elm_lang$core$Color$rgba, 0, 0, 0, 1)
+																								}),
+																							_1: {ctor: '[]'}
+																						}
 																					}
 																				})),
 																		_1: {ctor: '[]'}
@@ -25001,39 +25131,55 @@ var _user$project$Views$importModal = function (model) {
 			_1: {
 				ctor: '::',
 				_0: _mdgriffith$style_elements$Element_Attributes$verticalCenter,
-				_1: {
-					ctor: '::',
-					_0: _mdgriffith$style_elements$Element_Attributes$padding(20),
-					_1: {ctor: '[]'}
-				}
+				_1: {ctor: '[]'}
 			}
 		},
 		A3(
 			_mdgriffith$style_elements$Element$column,
 			_user$project$Views$None,
-			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: _mdgriffith$style_elements$Element_Attributes$spacing(20),
+				_1: {
+					ctor: '::',
+					_0: _mdgriffith$style_elements$Element_Attributes$padding(20),
+					_1: {ctor: '[]'}
+				}
+			},
 			{
 				ctor: '::',
 				_0: A3(
 					_mdgriffith$style_elements$Element$el,
 					_user$project$Views$None,
 					{ctor: '[]'},
-					_mdgriffith$style_elements$Element$text('A Nice Modal')),
+					_mdgriffith$style_elements$Element$text('Import a task list')),
 				_1: {
 					ctor: '::',
-					_0: _user$project$Views$importFileField('import'),
-					_1: {
-						ctor: '::',
-						_0: A2(
-							_user$project$Views$btn,
-							_user$project$Views$Text('Close'),
-							{
+					_0: A3(
+						_mdgriffith$style_elements$Element$row,
+						_user$project$Views$None,
+						{
+							ctor: '::',
+							_0: _mdgriffith$style_elements$Element_Attributes$spread,
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _user$project$Views$importFileField('import'),
+							_1: {
 								ctor: '::',
-								_0: _mdgriffith$style_elements$Element_Events$onClick(_user$project$Types$CloseImport),
+								_0: A2(
+									_user$project$Views$btn,
+									_user$project$Views$Text('Cancel'),
+									{
+										ctor: '::',
+										_0: _mdgriffith$style_elements$Element_Events$onClick(_user$project$Types$CloseImport),
+										_1: {ctor: '[]'}
+									}),
 								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
-					}
+							}
+						}),
+					_1: {ctor: '[]'}
 				}
 			}));
 };
