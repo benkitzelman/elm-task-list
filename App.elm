@@ -8,6 +8,7 @@ import Model exposing (..)
 import Types exposing (..)
 import Views exposing (view)
 import Random.Pcg exposing (initialSeed)
+import Debug
 
 
 main : Program Int Model Msg
@@ -26,6 +27,7 @@ init flags =
       , groups = []
       , focusedTaskUuid = Nothing
       , mouseCoords = Nothing
+      , showImportModal = False
       }
     , loadModel ()
     )
@@ -94,8 +96,21 @@ update msg model =
             in
                 ( newModel, Cmd.none )
 
-        Import ->
-            ( model, Cmd.none )
+        ShowImport ->
+            ( { model | showImportModal = True }, Cmd.none )
+
+        CloseImport ->
+            ( { model | showImportModal = False }, Cmd.none )
+
+        ImportFile elId ->
+            ( model, readSelectedFileFromInput elId )
+
+        OnImported jsonStr ->
+            let
+                newModel =
+                    deserialize jsonStr model
+            in
+                ( { newModel | showImportModal = False }, Cmd.none )
 
         GroupNew preceedingGroup ->
             let
@@ -123,5 +138,6 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ onModelLoaded OnLoad
+        , onFileImported OnImported
         , Mouse.moves MouseMove
         ]

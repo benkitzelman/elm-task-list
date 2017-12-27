@@ -3,7 +3,9 @@ module Views exposing (view)
 import Types exposing (..)
 import Model exposing (..)
 import Html exposing (Html)
-import Html.Attributes as HtmlAttrs
+import Html.Attributes
+import Html.Events
+import Json.Decode
 import Element exposing (..)
 import Element.Attributes exposing (..)
 import Element.Events exposing (..)
@@ -32,7 +34,17 @@ type Styles
     | TaskPending
     | DoneIndicator
     | PendingIndicator
+    | Modal
     | Github
+
+
+
+--TODO: learn how to define constants?
+
+
+githubUrl : String
+githubUrl =
+    "https://github.com/benkitzelman/elm-task-list"
 
 
 colorHighlight : Color
@@ -93,7 +105,7 @@ taskStyle =
 xyCoord : Int -> Int -> Attribute variation msg
 xyCoord xCoord yCoord =
     toAttr
-        (HtmlAttrs.style
+        (Html.Attributes.style
             [ ( "position", "fixed" )
             , ( "top", (toString yCoord) ++ "px" )
             , ( "left", (toString xCoord) ++ "px" )
@@ -102,18 +114,25 @@ xyCoord xCoord yCoord =
         )
 
 
+fontStyles : List (Property class variation)
+fontStyles =
+    [ Font.typeface [ Font.sansSerif ]
+    , Font.size 14
+    , Font.lineHeight 1.3
+    ]
+
+
 stylesheet : StyleSheet Styles variation
 stylesheet =
     Style.styleSheet
         [ style None [] -- It's handy to have a blank style
         , style JobLog
-            [ Color.text colorDefault
-            , Color.background colorBackground
-            , Color.border Color.lightGrey
-            , Font.typeface [ Font.sansSerif ]
-            , Font.size 14
-            , Font.lineHeight 1.3
-            ]
+            (fontStyles
+                ++ [ Color.text colorDefault
+                   , Color.background colorBackground
+                   , Color.border Color.lightGrey
+                   ]
+            )
         , style Header
             [ Color.background (Color.rgb 25 25 25)
             ]
@@ -159,6 +178,12 @@ stylesheet =
             [ Color.background (Color.rgb 219 80 96) ]
         , style PendingIndicator
             [ Color.background (Color.rgb 28 155 198) ]
+        , style Modal
+            (fontStyles
+                ++ [ Color.text colorDefault
+                   , Color.background colorBackgroundAlt
+                   ]
+            )
         ]
 
 
@@ -175,6 +200,18 @@ inputField style idStr value msg options placeholder =
                 , text = placeholder
                 }
         }
+
+
+importFileField : String -> Element Styles variation Msg
+importFileField idStr =
+    html
+        (Html.input
+            [ Html.Attributes.type_ "file"
+            , Html.Attributes.id idStr
+            , Html.Events.on "change" (Json.Decode.succeed (ImportFile idStr))
+            ]
+            []
+        )
 
 
 type ButtonType
@@ -210,6 +247,19 @@ exportBtn model =
             (el Button [ paddingXY 8 3, spacingXY 0 10 ] (text "Export"))
 
 
+importModal : Model -> Element Styles variation Msg
+importModal model =
+    modal Modal
+        [ center, verticalCenter, padding 20 ]
+        (column None
+            []
+            [ el None [] (text "A Nice Modal")
+            , importFileField "import"
+            , btn (Text "Close") [ onClick CloseImport ]
+            ]
+        )
+
+
 indicator : Bool -> Element Styles variation msg
 indicator isDone =
     let
@@ -228,11 +278,17 @@ view model =
         render =
             renderGroup model
 
-        content =
+        groups =
             if List.isEmpty model.groups then
                 [ btn (Text "+ Add Group") [ onClick (GroupNew Nothing) ] ]
             else
                 (List.map render model.groups)
+
+        content =
+            if model.showImportModal then
+                groups ++ [ (importModal model) ]
+            else
+                groups
     in
         viewport stylesheet <|
             column JobLog
@@ -243,12 +299,12 @@ view model =
                     [ row None
                         (commonSpacing ++ [ width (px 600), spread, paddingXY 0 10 ])
                         [ h1 Title [ verticalCenter ] (text "Job Log")
-                        , (newTab "https://github.com/benkitzelman/elm-task-list" <|
+                        , (newTab githubUrl <|
                             el Github [ padding 5, paddingLeft 30, spacingXY 0 8 ] (text "View it on Github")
                           )
                         , row None
                             (commonSpacing ++ [ alignRight ])
-                            [ btn (Text "Import") [ onClick Import ]
+                            [ btn (Text "Import") [ onClick ShowImport ]
                             , (exportBtn model)
                             ]
                         ]

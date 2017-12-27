@@ -1,7 +1,6 @@
-port module Model exposing (draggedTask, dropDraggedTaskInto, dropAllTasks, dropTaskIn, moveTaskToGroup, parentGroup, addNewGroup, addNewTask, removeTask, removeGroup, updateTask, updateGroup, loadModel, saveModel, serialize, deserialize, onModelLoaded)
+port module Model exposing (draggedTask, dropDraggedTaskInto, dropAllTasks, dropTaskIn, moveTaskToGroup, parentGroup, addNewGroup, addNewTask, removeTask, removeGroup, updateTask, updateGroup, loadModel, saveModel, serialize, deserialize, onModelLoaded, readSelectedFileFromInput, onFileImported)
 
 import Uuid exposing (Uuid, uuidGenerator)
-import Mouse
 import Random.Pcg exposing (Seed, step)
 import Json.Encode exposing (encode, string, object, bool, int, Value)
 import Json.Decode exposing (decodeString, field)
@@ -16,6 +15,12 @@ port getLocalStorage : () -> Cmd msg
 
 
 port onModelLoaded : (Maybe String -> msg) -> Sub msg
+
+
+port readSelectedFileFromInput : String -> Cmd msg
+
+
+port onFileImported : (Maybe String -> msg) -> Sub msg
 
 
 
@@ -249,11 +254,12 @@ groupFromJson =
 
 fromJson : Json.Decode.Decoder Model
 fromJson =
-    Json.Decode.map4 Model
+    Json.Decode.map5 Model
         (field "groups" (Json.Decode.list groupFromJson))
         (field "seed" Random.Pcg.fromJson)
         (field "mouseCoords" (Json.Decode.null Nothing))
         (field "focusedTaskUuid" (Json.Decode.nullable Uuid.decoder))
+        (field "showImportModal" Json.Decode.bool)
 
 
 deserialize : Maybe String -> Model -> Model
@@ -319,6 +325,7 @@ toJson model =
             , ( "seed", Random.Pcg.toJson model.seed )
             , ( "mouseCoords", Json.Encode.null )
             , ( "focusedTaskUuid", Json.Encode.null )
+            , ( "showImportModal", bool False )
             ]
 
 

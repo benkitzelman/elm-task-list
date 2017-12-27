@@ -23984,9 +23984,9 @@ var _user$project$Types$Group = F3(
 	function (a, b, c) {
 		return {uuid: a, title: b, tasks: c};
 	});
-var _user$project$Types$Model = F4(
-	function (a, b, c, d) {
-		return {groups: a, seed: b, mouseCoords: c, focusedTaskUuid: d};
+var _user$project$Types$Model = F5(
+	function (a, b, c, d, e) {
+		return {groups: a, seed: b, mouseCoords: c, focusedTaskUuid: d, showImportModal: e};
 	});
 var _user$project$Types$MouseMove = function (a) {
 	return {ctor: 'MouseMove', _0: a};
@@ -23994,7 +23994,14 @@ var _user$project$Types$MouseMove = function (a) {
 var _user$project$Types$OnLoad = function (a) {
 	return {ctor: 'OnLoad', _0: a};
 };
-var _user$project$Types$Import = {ctor: 'Import'};
+var _user$project$Types$CloseImport = {ctor: 'CloseImport'};
+var _user$project$Types$OnImported = function (a) {
+	return {ctor: 'OnImported', _0: a};
+};
+var _user$project$Types$ImportFile = function (a) {
+	return {ctor: 'ImportFile', _0: a};
+};
+var _user$project$Types$ShowImport = {ctor: 'ShowImport'};
 var _user$project$Types$GroupNew = function (a) {
 	return {ctor: 'GroupNew', _0: a};
 };
@@ -24127,7 +24134,15 @@ var _user$project$Model$toJson = function (model) {
 					_1: {
 						ctor: '::',
 						_0: {ctor: '_Tuple2', _0: 'focusedTaskUuid', _1: _elm_lang$core$Json_Encode$null},
-						_1: {ctor: '[]'}
+						_1: {
+							ctor: '::',
+							_0: {
+								ctor: '_Tuple2',
+								_0: 'showImportModal',
+								_1: _elm_lang$core$Json_Encode$bool(false)
+							},
+							_1: {ctor: '[]'}
+						}
 					}
 				}
 			}
@@ -24155,8 +24170,8 @@ var _user$project$Model$groupFromJson = A4(
 		_elm_lang$core$Json_Decode$field,
 		'tasks',
 		_elm_lang$core$Json_Decode$list(_user$project$Model$taskFromJson)));
-var _user$project$Model$fromJson = A5(
-	_elm_lang$core$Json_Decode$map4,
+var _user$project$Model$fromJson = A6(
+	_elm_lang$core$Json_Decode$map5,
 	_user$project$Types$Model,
 	A2(
 		_elm_lang$core$Json_Decode$field,
@@ -24170,7 +24185,8 @@ var _user$project$Model$fromJson = A5(
 	A2(
 		_elm_lang$core$Json_Decode$field,
 		'focusedTaskUuid',
-		_elm_lang$core$Json_Decode$nullable(_danyx23$elm_uuid$Uuid$decoder)));
+		_elm_lang$core$Json_Decode$nullable(_danyx23$elm_uuid$Uuid$decoder)),
+	A2(_elm_lang$core$Json_Decode$field, 'showImportModal', _elm_lang$core$Json_Decode$bool));
 var _user$project$Model$deserialize = F2(
 	function (jsonStr, model) {
 		var _p1 = jsonStr;
@@ -24493,7 +24509,47 @@ var _user$project$Model$onModelLoaded = _elm_lang$core$Native_Platform.incomingP
 				_1: {ctor: '[]'}
 			}
 		}));
+var _user$project$Model$readSelectedFileFromInput = _elm_lang$core$Native_Platform.outgoingPort(
+	'readSelectedFileFromInput',
+	function (v) {
+		return v;
+	});
+var _user$project$Model$onFileImported = _elm_lang$core$Native_Platform.incomingPort(
+	'onFileImported',
+	_elm_lang$core$Json_Decode$oneOf(
+		{
+			ctor: '::',
+			_0: _elm_lang$core$Json_Decode$null(_elm_lang$core$Maybe$Nothing),
+			_1: {
+				ctor: '::',
+				_0: A2(_elm_lang$core$Json_Decode$map, _elm_lang$core$Maybe$Just, _elm_lang$core$Json_Decode$string),
+				_1: {ctor: '[]'}
+			}
+		}));
 
+var _user$project$Views$importFileField = function (idStr) {
+	return _mdgriffith$style_elements$Element$html(
+		A2(
+			_elm_lang$html$Html$input,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$type_('file'),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$id(idStr),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html_Events$on,
+							'change',
+							_elm_lang$core$Json_Decode$succeed(
+								_user$project$Types$ImportFile(idStr))),
+						_1: {ctor: '[]'}
+					}
+				}
+			},
+			{ctor: '[]'}));
+};
 var _user$project$Views$inputField = F6(
 	function (style, idStr, value, msg, options, placeholder) {
 		return A3(
@@ -24519,6 +24575,24 @@ var _user$project$Views$inputField = F6(
 					})
 			});
 	});
+var _user$project$Views$fontStyles = {
+	ctor: '::',
+	_0: _mdgriffith$style_elements$Style_Font$typeface(
+		{
+			ctor: '::',
+			_0: _mdgriffith$style_elements$Style_Font$sansSerif,
+			_1: {ctor: '[]'}
+		}),
+	_1: {
+		ctor: '::',
+		_0: _mdgriffith$style_elements$Style_Font$size(14),
+		_1: {
+			ctor: '::',
+			_0: _mdgriffith$style_elements$Style_Font$lineHeight(1.3),
+			_1: {ctor: '[]'}
+		}
+	}
+};
 var _user$project$Views$xyCoord = F2(
 	function (xCoord, yCoord) {
 		return _mdgriffith$style_elements$Element_Attributes$toAttr(
@@ -24603,7 +24677,9 @@ var _user$project$Views$buttonStyle = {
 		}
 	}
 };
+var _user$project$Views$githubUrl = 'https://github.com/benkitzelman/elm-task-list';
 var _user$project$Views$Github = {ctor: 'Github'};
+var _user$project$Views$Modal = {ctor: 'Modal'};
 var _user$project$Views$PendingIndicator = {ctor: 'PendingIndicator'};
 var _user$project$Views$DoneIndicator = {ctor: 'DoneIndicator'};
 var _user$project$Views$indicator = function (isDone) {
@@ -24666,36 +24742,22 @@ var _user$project$Views$stylesheet = _mdgriffith$style_elements$Style$styleSheet
 			_0: A2(
 				_mdgriffith$style_elements$Style$style,
 				_user$project$Views$JobLog,
-				{
-					ctor: '::',
-					_0: _mdgriffith$style_elements$Style_Color$text(_user$project$Views$colorDefault),
-					_1: {
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					_user$project$Views$fontStyles,
+					{
 						ctor: '::',
-						_0: _mdgriffith$style_elements$Style_Color$background(_user$project$Views$colorBackground),
+						_0: _mdgriffith$style_elements$Style_Color$text(_user$project$Views$colorDefault),
 						_1: {
 							ctor: '::',
-							_0: _mdgriffith$style_elements$Style_Color$border(_elm_lang$core$Color$lightGrey),
+							_0: _mdgriffith$style_elements$Style_Color$background(_user$project$Views$colorBackground),
 							_1: {
 								ctor: '::',
-								_0: _mdgriffith$style_elements$Style_Font$typeface(
-									{
-										ctor: '::',
-										_0: _mdgriffith$style_elements$Style_Font$sansSerif,
-										_1: {ctor: '[]'}
-									}),
-								_1: {
-									ctor: '::',
-									_0: _mdgriffith$style_elements$Style_Font$size(14),
-									_1: {
-										ctor: '::',
-										_0: _mdgriffith$style_elements$Style_Font$lineHeight(1.3),
-										_1: {ctor: '[]'}
-									}
-								}
+								_0: _mdgriffith$style_elements$Style_Color$border(_elm_lang$core$Color$lightGrey),
+								_1: {ctor: '[]'}
 							}
 						}
-					}
-				}),
+					})),
 			_1: {
 				ctor: '::',
 				_0: A2(
@@ -24844,7 +24906,25 @@ var _user$project$Views$stylesheet = _mdgriffith$style_elements$Style$styleSheet
 																				A3(_elm_lang$core$Color$rgb, 28, 155, 198)),
 																			_1: {ctor: '[]'}
 																		}),
-																	_1: {ctor: '[]'}
+																	_1: {
+																		ctor: '::',
+																		_0: A2(
+																			_mdgriffith$style_elements$Style$style,
+																			_user$project$Views$Modal,
+																			A2(
+																				_elm_lang$core$Basics_ops['++'],
+																				_user$project$Views$fontStyles,
+																				{
+																					ctor: '::',
+																					_0: _mdgriffith$style_elements$Style_Color$text(_user$project$Views$colorDefault),
+																					_1: {
+																						ctor: '::',
+																						_0: _mdgriffith$style_elements$Style_Color$background(_user$project$Views$colorBackgroundAlt),
+																						_1: {ctor: '[]'}
+																					}
+																				})),
+																		_1: {ctor: '[]'}
+																	}
 																}
 															}
 														}
@@ -24910,6 +24990,52 @@ var _user$project$Views$Move = function (a) {
 };
 var _user$project$Views$Text = function (a) {
 	return {ctor: 'Text', _0: a};
+};
+var _user$project$Views$importModal = function (model) {
+	return A3(
+		_mdgriffith$style_elements$Element$modal,
+		_user$project$Views$Modal,
+		{
+			ctor: '::',
+			_0: _mdgriffith$style_elements$Element_Attributes$center,
+			_1: {
+				ctor: '::',
+				_0: _mdgriffith$style_elements$Element_Attributes$verticalCenter,
+				_1: {
+					ctor: '::',
+					_0: _mdgriffith$style_elements$Element_Attributes$padding(20),
+					_1: {ctor: '[]'}
+				}
+			}
+		},
+		A3(
+			_mdgriffith$style_elements$Element$column,
+			_user$project$Views$None,
+			{ctor: '[]'},
+			{
+				ctor: '::',
+				_0: A3(
+					_mdgriffith$style_elements$Element$el,
+					_user$project$Views$None,
+					{ctor: '[]'},
+					_mdgriffith$style_elements$Element$text('A Nice Modal')),
+				_1: {
+					ctor: '::',
+					_0: _user$project$Views$importFileField('import'),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_user$project$Views$btn,
+							_user$project$Views$Text('Close'),
+							{
+								ctor: '::',
+								_0: _mdgriffith$style_elements$Element_Events$onClick(_user$project$Types$CloseImport),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}
+				}
+			}));
 };
 var _user$project$Views$editTask = F4(
 	function (style, model, group, task) {
@@ -25159,7 +25285,7 @@ var _user$project$Views$renderGroup = F2(
 	});
 var _user$project$Views$view = function (model) {
 	var render = _user$project$Views$renderGroup(model);
-	var content = _elm_lang$core$List$isEmpty(model.groups) ? {
+	var groups = _elm_lang$core$List$isEmpty(model.groups) ? {
 		ctor: '::',
 		_0: A2(
 			_user$project$Views$btn,
@@ -25172,6 +25298,14 @@ var _user$project$Views$view = function (model) {
 			}),
 		_1: {ctor: '[]'}
 	} : A2(_elm_lang$core$List$map, render, model.groups);
+	var content = model.showImportModal ? A2(
+		_elm_lang$core$Basics_ops['++'],
+		groups,
+		{
+			ctor: '::',
+			_0: _user$project$Views$importModal(model),
+			_1: {ctor: '[]'}
+		}) : groups;
 	return A2(
 		_mdgriffith$style_elements$Element$viewport,
 		_user$project$Views$stylesheet,
@@ -25250,7 +25384,7 @@ var _user$project$Views$view = function (model) {
 									ctor: '::',
 									_0: A2(
 										_mdgriffith$style_elements$Element$newTab,
-										'https://github.com/benkitzelman/elm-task-list',
+										_user$project$Views$githubUrl,
 										A3(
 											_mdgriffith$style_elements$Element$el,
 											_user$project$Views$Github,
@@ -25288,7 +25422,7 @@ var _user$project$Views$view = function (model) {
 													_user$project$Views$Text('Import'),
 													{
 														ctor: '::',
-														_0: _mdgriffith$style_elements$Element_Events$onClick(_user$project$Types$Import),
+														_0: _mdgriffith$style_elements$Element_Events$onClick(_user$project$Types$ShowImport),
 														_1: {ctor: '[]'}
 													}),
 												_1: {
@@ -25355,8 +25489,12 @@ var _user$project$App$subscriptions = function (model) {
 			_0: _user$project$Model$onModelLoaded(_user$project$Types$OnLoad),
 			_1: {
 				ctor: '::',
-				_0: _elm_lang$mouse$Mouse$moves(_user$project$Types$MouseMove),
-				_1: {ctor: '[]'}
+				_0: _user$project$Model$onFileImported(_user$project$Types$OnImported),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$mouse$Mouse$moves(_user$project$Types$MouseMove),
+					_1: {ctor: '[]'}
+				}
 			}
 		});
 };
@@ -25463,8 +25601,37 @@ var _user$project$App$update = F2(
 					}
 				}();
 				return {ctor: '_Tuple2', _0: newModel, _1: _elm_lang$core$Platform_Cmd$none};
-			case 'Import':
-				return {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none};
+			case 'ShowImport':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{showImportModal: true}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'CloseImport':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{showImportModal: false}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'ImportFile':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: _user$project$Model$readSelectedFileFromInput(_p0._0)
+				};
+			case 'OnImported':
+				var newModel = A2(_user$project$Model$deserialize, _p0._0, model);
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						newModel,
+						{showImportModal: false}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
 			case 'GroupNew':
 				var newModel = A2(_user$project$Model$addNewGroup, model, _p0._0);
 				return {
@@ -25491,7 +25658,8 @@ var _user$project$App$init = function (flags) {
 			seed: _mgold$elm_random_pcg$Random_Pcg$initialSeed(flags),
 			groups: {ctor: '[]'},
 			focusedTaskUuid: _elm_lang$core$Maybe$Nothing,
-			mouseCoords: _elm_lang$core$Maybe$Nothing
+			mouseCoords: _elm_lang$core$Maybe$Nothing,
+			showImportModal: false
 		},
 		_1: _user$project$Model$loadModel(
 			{ctor: '_Tuple0'})

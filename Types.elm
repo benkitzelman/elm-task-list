@@ -15,7 +15,7 @@ type alias Group =
 
 
 type alias Model =
-    { groups : List Group, seed : Seed, mouseCoords : Maybe Mouse.Position, focusedTaskUuid : Maybe Uuid }
+    { groups : List Group, seed : Seed, mouseCoords : Maybe Mouse.Position, focusedTaskUuid : Maybe Uuid, showImportModal : Bool }
 
 
 type Msg
@@ -29,6 +29,9 @@ type Msg
     | TaskDrop (Maybe Group)
     | GroupRemove Group
     | GroupNew (Maybe Group)
-    | Import
+    | ShowImport
+    | ImportFile String
+    | OnImported (Maybe String)
+    | CloseImport
     | OnLoad (Maybe String)
     | MouseMove Mouse.Position

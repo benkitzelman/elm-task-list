@@ -18,5 +18,17 @@
     app.ports.getLocalStorage.subscribe(function() {
       app.ports.onModelLoaded.send(localStorage.getItem(key))
     })
+
+    app.ports.readSelectedFileFromInput.subscribe(function(fieldId){
+      var el     = document.getElementById(fieldId)
+      var file   = el.files[0]
+      var reader = new FileReader
+
+      reader.onload = function(e) {
+        app.ports.onFileImported.send(e.target.result)
+      }
+
+      reader.readAsText(file)
+    })
   </script>
 </html>
