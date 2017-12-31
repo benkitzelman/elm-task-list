@@ -297,7 +297,7 @@ view model =
     in
         viewport stylesheet <|
             column JobLog
-                [ height (percent 100), width (percent 100), center, onMouseUp (TaskDrop Nothing) ]
+                [ height (percent 100), width (percent 100), center, onMouseUp (Drop Nothing) ]
                 [ row
                     Header
                     [ width (percent 100), center ]
@@ -334,11 +334,15 @@ renderGroup model group =
                 viewTask TaskDone group task
     in
         column Group
-            (commonSpacing ++ [ onMouseUp (TaskDrop (Just group)) ])
+            (commonSpacing ++ [ onMouseUp (Drop (Just group)) ])
             [ row None
                 (commonSpacing ++ [ spread ])
                 [ inputField TitleField (toString group.uuid) group.title (GroupTitle group) [] "Enter group title..."
-                , btn (Image "assets/images/bin_25_25.png") [ onClick (GroupRemove group) ]
+                , row None
+                    [ alignRight ]
+                    [ btn (Move "Move") [ onMouseDown (GroupDrag group) ]
+                    , btn (Image "assets/images/bin_25_25.png") [ onClick (GroupRemove group) ]
+                    ]
                 ]
             , column None
                 []

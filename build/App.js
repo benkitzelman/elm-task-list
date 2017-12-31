@@ -24101,14 +24101,16 @@ var _user$project$Types$Task = F4(
 	function (a, b, c, d) {
 		return {uuid: a, description: b, isDone: c, isDragging: d};
 	});
-var _user$project$Types$Group = F3(
-	function (a, b, c) {
-		return {uuid: a, title: b, tasks: c};
+var _user$project$Types$Group = F4(
+	function (a, b, c, d) {
+		return {uuid: a, title: b, tasks: c, isDragging: d};
 	});
 var _user$project$Types$Model = F5(
 	function (a, b, c, d, e) {
 		return {groups: a, seed: b, mouseCoords: c, focusedTaskUuid: d, showImportModal: e};
 	});
+var _user$project$Types$After = {ctor: 'After'};
+var _user$project$Types$Before = {ctor: 'Before'};
 var _user$project$Types$MouseMove = function (a) {
 	return {ctor: 'MouseMove', _0: a};
 };
@@ -24123,14 +24125,17 @@ var _user$project$Types$ImportFile = function (a) {
 	return {ctor: 'ImportFile', _0: a};
 };
 var _user$project$Types$ShowImport = {ctor: 'ShowImport'};
+var _user$project$Types$GroupDrag = function (a) {
+	return {ctor: 'GroupDrag', _0: a};
+};
 var _user$project$Types$GroupNew = function (a) {
 	return {ctor: 'GroupNew', _0: a};
 };
 var _user$project$Types$GroupRemove = function (a) {
 	return {ctor: 'GroupRemove', _0: a};
 };
-var _user$project$Types$TaskDrop = function (a) {
-	return {ctor: 'TaskDrop', _0: a};
+var _user$project$Types$Drop = function (a) {
+	return {ctor: 'Drop', _0: a};
 };
 var _user$project$Types$TaskDrag = F2(
 	function (a, b) {
@@ -24219,7 +24224,15 @@ var _user$project$Model$groupJson = function (group) {
 						_1: _elm_lang$core$Json_Encode$list(
 							A2(_elm_lang$core$List$map, _user$project$Model$taskJson, group.tasks))
 					},
-					_1: {ctor: '[]'}
+					_1: {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'isDragging',
+							_1: _elm_lang$core$Json_Encode$bool(false)
+						},
+						_1: {ctor: '[]'}
+					}
 				}
 			}
 		});
@@ -24282,15 +24295,16 @@ var _user$project$Model$taskFromJson = A5(
 	A2(_elm_lang$core$Json_Decode$field, 'description', _elm_lang$core$Json_Decode$string),
 	A2(_elm_lang$core$Json_Decode$field, 'isDone', _elm_lang$core$Json_Decode$bool),
 	A2(_elm_lang$core$Json_Decode$field, 'isDragging', _elm_lang$core$Json_Decode$bool));
-var _user$project$Model$groupFromJson = A4(
-	_elm_lang$core$Json_Decode$map3,
+var _user$project$Model$groupFromJson = A5(
+	_elm_lang$core$Json_Decode$map4,
 	_user$project$Types$Group,
 	A2(_elm_lang$core$Json_Decode$field, 'uuid', _danyx23$elm_uuid$Uuid$decoder),
 	A2(_elm_lang$core$Json_Decode$field, 'title', _elm_lang$core$Json_Decode$string),
 	A2(
 		_elm_lang$core$Json_Decode$field,
 		'tasks',
-		_elm_lang$core$Json_Decode$list(_user$project$Model$taskFromJson)));
+		_elm_lang$core$Json_Decode$list(_user$project$Model$taskFromJson)),
+	A2(_elm_lang$core$Json_Decode$field, 'isDragging', _elm_lang$core$Json_Decode$bool));
 var _user$project$Model$fromJson = A6(
 	_elm_lang$core$Json_Decode$map5,
 	_user$project$Types$Model,
@@ -24327,6 +24341,11 @@ var _user$project$Model$deserialize = F2(
 			}
 		}
 	});
+var _user$project$Model$dropGroup = function (group) {
+	return _elm_lang$core$Native_Utils.update(
+		group,
+		{isDragging: false});
+};
 var _user$project$Model$dropTask = function (task) {
 	return _elm_lang$core$Native_Utils.update(
 		task,
@@ -24352,8 +24371,44 @@ var _user$project$Model$updateSeed = F2(
 			model,
 			{seed: seed});
 	});
+var _user$project$Model$insertGroup = F4(
+	function (position, preceedingGroup, newGroup, list) {
+		var insert = function (g) {
+			if (_elm_lang$core$Native_Utils.eq(g, preceedingGroup)) {
+				var _p4 = position;
+				if (_p4.ctor === 'Before') {
+					return {
+						ctor: '::',
+						_0: newGroup,
+						_1: {
+							ctor: '::',
+							_0: g,
+							_1: {ctor: '[]'}
+						}
+					};
+				} else {
+					return {
+						ctor: '::',
+						_0: g,
+						_1: {
+							ctor: '::',
+							_0: newGroup,
+							_1: {ctor: '[]'}
+						}
+					};
+				}
+			} else {
+				return {
+					ctor: '::',
+					_0: g,
+					_1: {ctor: '[]'}
+				};
+			}
+		};
+		return A2(_elm_lang$core$List$concatMap, insert, list);
+	});
 var _user$project$Model$removeGroup = F2(
-	function (model, group) {
+	function (group, model) {
 		return _elm_lang$core$Native_Utils.update(
 			model,
 			{
@@ -24376,6 +24431,16 @@ var _user$project$Model$updateGroup = F2(
 				groups: A2(_elm_lang$core$List$map, updateGroup, model.groups)
 			});
 	});
+var _user$project$Model$dropGroupIn = F2(
+	function (group, model) {
+		return group.isDragging ? A2(
+			_user$project$Model$updateGroup,
+			model,
+			_user$project$Model$dropGroup(group)) : model;
+	});
+var _user$project$Model$dropAllGroups = function (model) {
+	return A3(_elm_lang$core$List$foldl, _user$project$Model$dropGroupIn, model, model.groups);
+};
 var _user$project$Model$removeTask = F3(
 	function (task, group, model) {
 		return A2(
@@ -24432,9 +24497,9 @@ var _user$project$Model$moveTaskToGroup = F4(
 		return newModel;
 	});
 var _user$project$Model$newTask = function (seed) {
-	var _p4 = A2(_mgold$elm_random_pcg$Random_Pcg$step, _danyx23$elm_uuid$Uuid$uuidGenerator, seed);
-	var uuid = _p4._0;
-	var newSeed = _p4._1;
+	var _p5 = A2(_mgold$elm_random_pcg$Random_Pcg$step, _danyx23$elm_uuid$Uuid$uuidGenerator, seed);
+	var uuid = _p5._0;
+	var newSeed = _p5._1;
 	return {
 		ctor: '_Tuple2',
 		_0: {uuid: uuid, description: '', isDone: false, isDragging: false},
@@ -24443,9 +24508,9 @@ var _user$project$Model$newTask = function (seed) {
 };
 var _user$project$Model$addNewTask = F2(
 	function (model, group) {
-		var _p5 = _user$project$Model$newTask(model.seed);
-		var task = _p5._0;
-		var seed = _p5._1;
+		var _p6 = _user$project$Model$newTask(model.seed);
+		var task = _p6._0;
+		var seed = _p6._1;
 		return {
 			ctor: '_Tuple2',
 			_0: A2(
@@ -24473,14 +24538,15 @@ var _user$project$Model$addNewTask = F2(
 		};
 	});
 var _user$project$Model$newGroup = function (seed) {
-	var _p6 = A2(_mgold$elm_random_pcg$Random_Pcg$step, _danyx23$elm_uuid$Uuid$uuidGenerator, seed);
-	var uuid = _p6._0;
-	var newSeed = _p6._1;
+	var _p7 = A2(_mgold$elm_random_pcg$Random_Pcg$step, _danyx23$elm_uuid$Uuid$uuidGenerator, seed);
+	var uuid = _p7._0;
+	var newSeed = _p7._1;
 	return {
 		ctor: '_Tuple2',
 		_0: {
 			uuid: uuid,
 			title: '',
+			isDragging: false,
 			tasks: {ctor: '[]'}
 		},
 		_1: newSeed
@@ -24488,31 +24554,13 @@ var _user$project$Model$newGroup = function (seed) {
 };
 var _user$project$Model$addNewGroup = F2(
 	function (model, preceedingGroup) {
-		var _p7 = _user$project$Model$newGroup(model.seed);
-		var group = _p7._0;
-		var seed = _p7._1;
+		var _p8 = _user$project$Model$newGroup(model.seed);
+		var group = _p8._0;
+		var seed = _p8._1;
 		var groups = function () {
-			var _p8 = preceedingGroup;
-			if (_p8.ctor === 'Just') {
-				var _p9 = _p8._0;
-				return A2(
-					_elm_lang$core$List$concatMap,
-					function (g) {
-						return _elm_lang$core$Native_Utils.eq(g, _p9) ? {
-							ctor: '::',
-							_0: _p9,
-							_1: {
-								ctor: '::',
-								_0: group,
-								_1: {ctor: '[]'}
-							}
-						} : {
-							ctor: '::',
-							_0: g,
-							_1: {ctor: '[]'}
-						};
-					},
-					model.groups);
+			var _p9 = preceedingGroup;
+			if (_p9.ctor === 'Just') {
+				return A4(_user$project$Model$insertGroup, _user$project$Types$After, _p9._0, group, model.groups);
 			} else {
 				return {
 					ctor: '::',
@@ -24555,6 +24603,36 @@ var _user$project$Model$dropTaskIn = F2(
 				_user$project$Model$dropTask(task));
 		}
 	});
+var _user$project$Model$draggedGroup = function (model) {
+	return _elm_lang$core$List$head(
+		A2(
+			_elm_lang$core$List$filter,
+			function (t) {
+				return _elm_lang$core$Native_Utils.eq(t.isDragging, true);
+			},
+			model.groups));
+};
+var _user$project$Model$dropDraggedGroup = F3(
+	function (position, group, model) {
+		var insert = F2(
+			function (dGroup, model) {
+				return _elm_lang$core$Native_Utils.update(
+					model,
+					{
+						groups: A4(_user$project$Model$insertGroup, position, group, dGroup, model.groups)
+					});
+			});
+		var _p11 = _user$project$Model$draggedGroup(model);
+		if (_p11.ctor === 'Nothing') {
+			return model;
+		} else {
+			var _p12 = _p11._0;
+			return A2(
+				insert,
+				_p12,
+				A2(_user$project$Model$removeGroup, _p12, model));
+		}
+	});
 var _user$project$Model$allTasks = function (model) {
 	return A2(
 		_elm_lang$core$List$concatMap,
@@ -24573,24 +24651,31 @@ var _user$project$Model$draggedTask = function (model) {
 			_user$project$Model$allTasks(model)));
 };
 var _user$project$Model$dropDraggedTaskInto = F2(
-	function (group, model) {
-		var _p11 = _user$project$Model$draggedTask(model);
-		if (_p11.ctor === 'Nothing') {
+	function (toGroup, model) {
+		var _p13 = _user$project$Model$draggedTask(model);
+		if (_p13.ctor === 'Nothing') {
 			return model;
 		} else {
-			var _p13 = _p11._0;
-			var _p12 = A2(_user$project$Model$parentGroup, _p13, model);
-			if (_p12.ctor === 'Nothing') {
+			var _p15 = _p13._0;
+			var _p14 = A2(_user$project$Model$parentGroup, _p15, model);
+			if (_p14.ctor === 'Nothing') {
 				return model;
 			} else {
 				return A4(
 					_user$project$Model$moveTaskToGroup,
 					model,
-					_p12._0,
-					group,
-					_user$project$Model$dropTask(_p13));
+					_p14._0,
+					toGroup,
+					_user$project$Model$dropTask(_p15));
 			}
 		}
+	});
+var _user$project$Model$dropDragged = F2(
+	function (group, model) {
+		return A2(
+			_user$project$Model$dropDraggedTaskInto,
+			group,
+			A3(_user$project$Model$dropDraggedGroup, _user$project$Types$After, group, model));
 	});
 var _user$project$Model$dropAllTasks = function (model) {
 	return A3(
@@ -24598,6 +24683,10 @@ var _user$project$Model$dropAllTasks = function (model) {
 		_user$project$Model$dropTaskIn,
 		model,
 		_user$project$Model$allTasks(model));
+};
+var _user$project$Model$dropAll = function (model) {
+	return _user$project$Model$dropAllGroups(
+		_user$project$Model$dropAllTasks(model));
 };
 var _user$project$Model$setLocalStorage = _elm_lang$core$Native_Platform.outgoingPort(
 	'setLocalStorage',
@@ -24613,8 +24702,8 @@ var _user$project$Model$getLocalStorage = _elm_lang$core$Native_Platform.outgoin
 	function (v) {
 		return null;
 	});
-var _user$project$Model$loadModel = function (_p14) {
-	var _p15 = _p14;
+var _user$project$Model$loadModel = function (_p16) {
+	var _p17 = _p16;
 	return _user$project$Model$getLocalStorage(
 		{ctor: '_Tuple0'});
 };
@@ -25336,7 +25425,7 @@ var _user$project$Views$renderGroup = F2(
 				{
 					ctor: '::',
 					_0: _mdgriffith$style_elements$Element_Events$onMouseUp(
-						_user$project$Types$TaskDrop(
+						_user$project$Types$Drop(
 							_elm_lang$core$Maybe$Just(group))),
 					_1: {ctor: '[]'}
 				}),
@@ -25365,14 +25454,38 @@ var _user$project$Views$renderGroup = F2(
 							'Enter group title...'),
 						_1: {
 							ctor: '::',
-							_0: A2(
-								_user$project$Views$btn,
-								_user$project$Views$Image('assets/images/bin_25_25.png'),
+							_0: A3(
+								_mdgriffith$style_elements$Element$row,
+								_user$project$Views$None,
 								{
 									ctor: '::',
-									_0: _mdgriffith$style_elements$Element_Events$onClick(
-										_user$project$Types$GroupRemove(group)),
+									_0: _mdgriffith$style_elements$Element_Attributes$alignRight,
 									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: A2(
+										_user$project$Views$btn,
+										_user$project$Views$Move('Move'),
+										{
+											ctor: '::',
+											_0: _mdgriffith$style_elements$Element_Events$onMouseDown(
+												_user$project$Types$GroupDrag(group)),
+											_1: {ctor: '[]'}
+										}),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_user$project$Views$btn,
+											_user$project$Views$Image('assets/images/bin_25_25.png'),
+											{
+												ctor: '::',
+												_0: _mdgriffith$style_elements$Element_Events$onClick(
+													_user$project$Types$GroupRemove(group)),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}
 								}),
 							_1: {ctor: '[]'}
 						}
@@ -25472,7 +25585,7 @@ var _user$project$Views$view = function (model) {
 						_1: {
 							ctor: '::',
 							_0: _mdgriffith$style_elements$Element_Events$onMouseUp(
-								_user$project$Types$TaskDrop(_elm_lang$core$Maybe$Nothing)),
+								_user$project$Types$Drop(_elm_lang$core$Maybe$Nothing)),
 							_1: {ctor: '[]'}
 						}
 					}
@@ -25728,6 +25841,14 @@ var _user$project$App$update = F2(
 							}
 						})
 				};
+			case 'GroupDrag':
+				var newModel = A2(
+					_user$project$Model$updateGroup,
+					model,
+					_elm_lang$core$Native_Utils.update(
+						_p0._0,
+						{isDragging: true}));
+				return {ctor: '_Tuple2', _0: newModel, _1: _elm_lang$core$Platform_Cmd$none};
 			case 'TaskDrag':
 				var newModel = A3(
 					_user$project$Model$updateTask,
@@ -25737,13 +25858,13 @@ var _user$project$App$update = F2(
 						_p0._1,
 						{isDragging: true}));
 				return {ctor: '_Tuple2', _0: newModel, _1: _elm_lang$core$Platform_Cmd$none};
-			case 'TaskDrop':
+			case 'Drop':
 				var newModel = function () {
 					var _p3 = _p0._0;
 					if (_p3.ctor === 'Nothing') {
-						return _user$project$Model$dropAllTasks(model);
+						return _user$project$Model$dropAll(model);
 					} else {
-						return A2(_user$project$Model$dropDraggedTaskInto, _p3._0, model);
+						return A2(_user$project$Model$dropDragged, _p3._0, model);
 					}
 				}();
 				return {ctor: '_Tuple2', _0: newModel, _1: _elm_lang$core$Platform_Cmd$none};
@@ -25786,7 +25907,7 @@ var _user$project$App$update = F2(
 					_1: _user$project$Model$saveModel(newModel)
 				};
 			case 'GroupRemove':
-				var newModel = A2(_user$project$Model$removeGroup, model, _p0._0);
+				var newModel = A2(_user$project$Model$removeGroup, _p0._0, model);
 				return {
 					ctor: '_Tuple2',
 					_0: newModel,

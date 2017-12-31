@@ -11,11 +11,16 @@ type alias Task =
 
 
 type alias Group =
-    { uuid : Uuid, title : String, tasks : List Task }
+    { uuid : Uuid, title : String, tasks : List Task, isDragging : Bool }
 
 
 type alias Model =
     { groups : List Group, seed : Seed, mouseCoords : Maybe Mouse.Position, focusedTaskUuid : Maybe Uuid, showImportModal : Bool }
+
+
+type Position
+    = Before
+    | After
 
 
 type Msg
@@ -26,9 +31,10 @@ type Msg
     | TaskRemove Group Task
     | TaskNew Group
     | TaskDrag Group Task
-    | TaskDrop (Maybe Group)
+    | Drop (Maybe Group)
     | GroupRemove Group
     | GroupNew (Maybe Group)
+    | GroupDrag Group
     | ShowImport
     | ImportFile String
     | OnImported (Maybe String)

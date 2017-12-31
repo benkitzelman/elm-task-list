@@ -1,4 +1,4 @@
-port module Model exposing (draggedTask, dropDraggedTaskInto, dropAllTasks, dropTaskIn, moveTaskToGroup, parentGroup, addNewGroup, addNewTask, removeTask, removeGroup, updateTask, updateGroup, loadModel, saveModel, serialize, deserialize, onModelLoaded, readSelectedFileFromInput, onFileImported)
+port module Model exposing (draggedTask, dropDragged, dropAll, dropTaskIn, moveTaskToGroup, parentGroup, addNewGroup, addNewTask, removeTask, removeGroup, updateTask, updateGroup, loadModel, saveModel, serialize, deserialize, onModelLoaded, readSelectedFileFromInput, onFileImported)
 
 import Uuid exposing (Uuid, uuidGenerator)
 import Random.Pcg exposing (Seed, step)
@@ -37,6 +37,11 @@ draggedTask model =
     List.head (List.filter (\t -> t.isDragging == True) (allTasks model))
 
 
+draggedGroup : Model -> Maybe Group
+draggedGroup model =
+    List.head (List.filter (\t -> t.isDragging == True) model.groups)
+
+
 isInGroup : Task -> Group -> Bool
 isInGroup task group =
     List.any (\t -> t.uuid == task.uuid) group.tasks
@@ -59,6 +64,7 @@ newGroup seed =
     in
         ( { uuid = uuid
           , title = ""
+          , isDragging = False
           , tasks = []
           }
         , newSeed
@@ -147,9 +153,30 @@ updateGroup model newGroup =
         { model | groups = List.map updateGroup model.groups }
 
 
-removeGroup : Model -> Group -> Model
-removeGroup model group =
+removeGroup : Group -> Model -> Model
+removeGroup group model =
     { model | groups = (List.filter (\aGrp -> group.uuid /= aGrp.uuid) model.groups) }
+
+
+
+-- TODO: should be a lib that handles this
+
+
+insertGroup : Position -> Group -> Group -> List Group -> List Group
+insertGroup position preceedingGroup newGroup list =
+    let
+        insert g =
+            if g == preceedingGroup then
+                case position of
+                    Before ->
+                        [ newGroup, g ]
+
+                    After ->
+                        [ g, newGroup ]
+            else
+                [ g ]
+    in
+        List.concatMap insert list
 
 
 addNewGroup : Model -> Maybe Group -> Model
@@ -161,14 +188,7 @@ addNewGroup model preceedingGroup =
         groups =
             case preceedingGroup of
                 Just preceedingGroup ->
-                    List.concatMap
-                        (\g ->
-                            if g == preceedingGroup then
-                                [ preceedingGroup, group ]
-                            else
-                                [ g ]
-                        )
-                        model.groups
+                    insertGroup After preceedingGroup group model.groups
 
                 Nothing ->
                     [ group ]
@@ -192,7 +212,7 @@ asTasksIn group tasks =
 
 
 dropDraggedTaskInto : Group -> Model -> Model
-dropDraggedTaskInto group model =
+dropDraggedTaskInto toGroup model =
     case (draggedTask model) of
         Nothing ->
             model
@@ -203,12 +223,44 @@ dropDraggedTaskInto group model =
                     model
 
                 Just fromGroup ->
-                    moveTaskToGroup model fromGroup group (dropTask task)
+                    moveTaskToGroup model fromGroup toGroup (dropTask task)
+
+
+dropDraggedGroup : Position -> Group -> Model -> Model
+dropDraggedGroup position group model =
+    let
+        insert dGroup model =
+            { model | groups = (insertGroup position group dGroup model.groups) }
+    in
+        case (draggedGroup model) of
+            Nothing ->
+                model
+
+            Just dGroup ->
+                model
+                    |> removeGroup dGroup
+                    |> insert dGroup
+
+
+dropDragged : Group -> Model -> Model
+dropDragged group model =
+    model
+        |> dropDraggedGroup After group
+        |> dropDraggedTaskInto group
+
+
+
+--TODO: There has to be a way to use types to dry this up
 
 
 dropTask : Task -> Task
 dropTask task =
     { task | isDragging = False }
+
+
+dropGroup : Group -> Group
+dropGroup group =
+    { group | isDragging = False }
 
 
 dropTaskIn : Task -> Model -> Model
@@ -221,9 +273,29 @@ dropTaskIn task model =
             updateTask model group (dropTask task)
 
 
+dropGroupIn : Group -> Model -> Model
+dropGroupIn group model =
+    if group.isDragging then
+        updateGroup model (dropGroup group)
+    else
+        model
+
+
 dropAllTasks : Model -> Model
 dropAllTasks model =
-    List.foldl (dropTaskIn) model (allTasks model)
+    List.foldl dropTaskIn model (allTasks model)
+
+
+dropAllGroups : Model -> Model
+dropAllGroups model =
+    List.foldl dropGroupIn model model.groups
+
+
+dropAll : Model -> Model
+dropAll model =
+    model
+        |> dropAllTasks
+        |> dropAllGroups
 
 
 
@@ -246,10 +318,11 @@ taskFromJson =
 
 groupFromJson : Json.Decode.Decoder Group
 groupFromJson =
-    Json.Decode.map3 Group
+    Json.Decode.map4 Group
         (field "uuid" Uuid.decoder)
         (field "title" Json.Decode.string)
         (field "tasks" (Json.Decode.list taskFromJson))
+        (field "isDragging" Json.Decode.bool)
 
 
 fromJson : Json.Decode.Decoder Model
@@ -306,6 +379,7 @@ groupJson group =
         [ ( "uuid", Uuid.encode group.uuid )
         , ( "title", string group.title )
         , ( "tasks", Json.Encode.list (List.map taskJson group.tasks) )
+        , ( "isDragging", bool False )
         ]
 
 

@@ -76,6 +76,13 @@ update msg model =
             in
                 ( newModel, Cmd.batch [ (saveModel newModel), (Dom.focus (toString newTask.uuid) |> Task.attempt Ignore) ] )
 
+        GroupDrag group ->
+            let
+                newModel =
+                    updateGroup model { group | isDragging = True }
+            in
+                ( newModel, Cmd.none )
+
         TaskDrag group task ->
             let
                 newModel =
@@ -83,15 +90,15 @@ update msg model =
             in
                 ( newModel, Cmd.none )
 
-        TaskDrop group ->
+        Drop group ->
             let
                 newModel =
                     case group of
                         Nothing ->
-                            dropAllTasks model
+                            dropAll model
 
                         Just group ->
-                            dropDraggedTaskInto group model
+                            dropDragged group model
             in
                 ( newModel, Cmd.none )
 
@@ -121,7 +128,7 @@ update msg model =
         GroupRemove group ->
             let
                 newModel =
-                    removeGroup model group
+                    removeGroup group model
             in
                 ( newModel, saveModel newModel )
 
