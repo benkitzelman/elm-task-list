@@ -32,6 +32,12 @@ init flags =
     )
 
 
+focusCmd : String -> Cmd Msg
+focusCmd elId =
+    Dom.focus elId
+        |> Task.attempt Ignore
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -74,7 +80,7 @@ update msg model =
                 ( newModel, newTask ) =
                     addNewTask model group
             in
-                ( newModel, Cmd.batch [ (saveModel newModel), (Dom.focus (toString newTask.uuid) |> Task.attempt Ignore) ] )
+                ( newModel, Cmd.batch [ (saveModel newModel), focusCmd (toString newTask.uuid) ] )
 
         GroupDrag group ->
             let
@@ -127,10 +133,10 @@ update msg model =
 
         GroupNew preceedingGroup ->
             let
-                newModel =
+                ( newModel, newGroup ) =
                     addNewGroup model preceedingGroup
             in
-                ( newModel, saveModel newModel )
+                ( newModel, Cmd.batch [ saveModel newModel, focusCmd (toString newGroup.uuid) ] )
 
         GroupRemove group ->
             let

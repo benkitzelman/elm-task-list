@@ -180,7 +180,7 @@ insertGroup position preceedingGroup newGroup list =
         List.concatMap insert list
 
 
-addNewGroup : Model -> Maybe Group -> Model
+addNewGroup : Model -> Maybe Group -> ( Model, Group )
 addNewGroup model preceedingGroup =
     let
         ( group, seed ) =
@@ -194,7 +194,7 @@ addNewGroup model preceedingGroup =
                 Nothing ->
                     [ group ]
     in
-        { model | groups = groups, seed = seed }
+        ( { model | groups = groups, seed = seed }, group )
 
 
 updateSeed : Seed -> Model -> Model

@@ -23,6 +23,7 @@ type Styles
     = None
     | JobLog
     | Header
+    | Footer
     | Content
     | Title
     | Group
@@ -138,6 +139,8 @@ stylesheet =
         , style Header
             [ Color.background (Color.rgb 25 25 25)
             ]
+        , style Footer
+            []
         , style Content
             []
         , style Title
@@ -328,6 +331,9 @@ view model =
                     [ column None
                         (commonSpacing ++ [ width (px 600) ])
                         [ column None commonSpacing content
+                        , row Footer
+                            [ height (px 50) ]
+                            []
                         ]
                     ]
                 ]

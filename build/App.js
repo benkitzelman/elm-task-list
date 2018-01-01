@@ -24592,9 +24592,13 @@ var _user$project$Model$addNewGroup = F2(
 				};
 			}
 		}();
-		return _elm_lang$core$Native_Utils.update(
-			model,
-			{groups: groups, seed: seed});
+		return {
+			ctor: '_Tuple2',
+			_0: _elm_lang$core$Native_Utils.update(
+				model,
+				{groups: groups, seed: seed}),
+			_1: group
+		};
 	});
 var _user$project$Model$isInGroup = F2(
 	function (task, group) {
@@ -24997,6 +25001,7 @@ var _user$project$Views$GroupAbove = {ctor: 'GroupAbove'};
 var _user$project$Views$Group = {ctor: 'Group'};
 var _user$project$Views$Title = {ctor: 'Title'};
 var _user$project$Views$Content = {ctor: 'Content'};
+var _user$project$Views$Footer = {ctor: 'Footer'};
 var _user$project$Views$Header = {ctor: 'Header'};
 var _user$project$Views$JobLog = {ctor: 'JobLog'};
 var _user$project$Views$None = {ctor: 'None'};
@@ -25043,46 +25048,38 @@ var _user$project$Views$stylesheet = _mdgriffith$style_elements$Style$styleSheet
 					ctor: '::',
 					_0: A2(
 						_mdgriffith$style_elements$Style$style,
-						_user$project$Views$Content,
+						_user$project$Views$Footer,
 						{ctor: '[]'}),
 					_1: {
 						ctor: '::',
 						_0: A2(
 							_mdgriffith$style_elements$Style$style,
-							_user$project$Views$Title,
-							{
-								ctor: '::',
-								_0: _mdgriffith$style_elements$Style_Font$size(20),
-								_1: {ctor: '[]'}
-							}),
+							_user$project$Views$Content,
+							{ctor: '[]'}),
 						_1: {
 							ctor: '::',
 							_0: A2(
 								_mdgriffith$style_elements$Style$style,
-								_user$project$Views$Group,
-								{ctor: '[]'}),
+								_user$project$Views$Title,
+								{
+									ctor: '::',
+									_0: _mdgriffith$style_elements$Style_Font$size(20),
+									_1: {ctor: '[]'}
+								}),
 							_1: {
 								ctor: '::',
 								_0: A2(
 									_mdgriffith$style_elements$Style$style,
-									_user$project$Views$GroupAbove,
-									{
-										ctor: '::',
-										_0: _mdgriffith$style_elements$Style_Border$top(2),
-										_1: {
-											ctor: '::',
-											_0: _mdgriffith$style_elements$Style_Color$border(_user$project$Views$colorHighlight),
-											_1: {ctor: '[]'}
-										}
-									}),
+									_user$project$Views$Group,
+									{ctor: '[]'}),
 								_1: {
 									ctor: '::',
 									_0: A2(
 										_mdgriffith$style_elements$Style$style,
-										_user$project$Views$GroupBelow,
+										_user$project$Views$GroupAbove,
 										{
 											ctor: '::',
-											_0: _mdgriffith$style_elements$Style_Border$bottom(2),
+											_0: _mdgriffith$style_elements$Style_Border$top(2),
 											_1: {
 												ctor: '::',
 												_0: _mdgriffith$style_elements$Style_Color$border(_user$project$Views$colorHighlight),
@@ -25093,144 +25090,159 @@ var _user$project$Views$stylesheet = _mdgriffith$style_elements$Style$styleSheet
 										ctor: '::',
 										_0: A2(
 											_mdgriffith$style_elements$Style$style,
-											_user$project$Views$TaskDone,
-											A2(
-												_elm_lang$core$Basics_ops['++'],
-												_user$project$Views$taskStyle,
-												{
-													ctor: '::',
-													_0: _mdgriffith$style_elements$Style_Color$background(
-														A3(_elm_lang$core$Color$rgb, 67, 74, 78)),
-													_1: {
-														ctor: '::',
-														_0: _mdgriffith$style_elements$Style_Color$text(_elm_lang$core$Color$grey),
-														_1: {ctor: '[]'}
-													}
-												})),
-										_1: {
-											ctor: '::',
-											_0: A2(_mdgriffith$style_elements$Style$style, _user$project$Views$TaskPending, _user$project$Views$taskStyle),
-											_1: {
+											_user$project$Views$GroupBelow,
+											{
 												ctor: '::',
-												_0: A2(
-													_mdgriffith$style_elements$Style$style,
-													_user$project$Views$TitleField,
-													A2(
-														_elm_lang$core$Basics_ops['++'],
-														_user$project$Views$textInput,
-														{
-															ctor: '::',
-															_0: _mdgriffith$style_elements$Style_Font$size(18),
-															_1: {ctor: '[]'}
-														})),
+												_0: _mdgriffith$style_elements$Style_Border$bottom(2),
 												_1: {
 													ctor: '::',
-													_0: A2(_mdgriffith$style_elements$Style$style, _user$project$Views$TextInput, _user$project$Views$textInput),
-													_1: {
+													_0: _mdgriffith$style_elements$Style_Color$border(_user$project$Views$colorHighlight),
+													_1: {ctor: '[]'}
+												}
+											}),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_mdgriffith$style_elements$Style$style,
+												_user$project$Views$TaskDone,
+												A2(
+													_elm_lang$core$Basics_ops['++'],
+													_user$project$Views$taskStyle,
+													{
 														ctor: '::',
-														_0: A2(_mdgriffith$style_elements$Style$style, _user$project$Views$Button, _user$project$Views$buttonStyle),
+														_0: _mdgriffith$style_elements$Style_Color$background(
+															A3(_elm_lang$core$Color$rgb, 67, 74, 78)),
 														_1: {
 															ctor: '::',
-															_0: A2(
-																_mdgriffith$style_elements$Style$style,
-																_user$project$Views$ImageButton,
-																{
-																	ctor: '::',
-																	_0: _mdgriffith$style_elements$Style_Color$background(_user$project$Views$colorTransparent),
-																	_1: {ctor: '[]'}
-																}),
+															_0: _mdgriffith$style_elements$Style_Color$text(_elm_lang$core$Color$grey),
+															_1: {ctor: '[]'}
+														}
+													})),
+											_1: {
+												ctor: '::',
+												_0: A2(_mdgriffith$style_elements$Style$style, _user$project$Views$TaskPending, _user$project$Views$taskStyle),
+												_1: {
+													ctor: '::',
+													_0: A2(
+														_mdgriffith$style_elements$Style$style,
+														_user$project$Views$TitleField,
+														A2(
+															_elm_lang$core$Basics_ops['++'],
+															_user$project$Views$textInput,
+															{
+																ctor: '::',
+																_0: _mdgriffith$style_elements$Style_Font$size(18),
+																_1: {ctor: '[]'}
+															})),
+													_1: {
+														ctor: '::',
+														_0: A2(_mdgriffith$style_elements$Style$style, _user$project$Views$TextInput, _user$project$Views$textInput),
+														_1: {
+															ctor: '::',
+															_0: A2(_mdgriffith$style_elements$Style$style, _user$project$Views$Button, _user$project$Views$buttonStyle),
 															_1: {
 																ctor: '::',
 																_0: A2(
 																	_mdgriffith$style_elements$Style$style,
-																	_user$project$Views$Github,
+																	_user$project$Views$ImageButton,
 																	{
 																		ctor: '::',
-																		_0: _mdgriffith$style_elements$Style_Background$imageWith(
-																			{
-																				src: '/assets/images/GitHub-Mark-Light-32px.png',
-																				position: {ctor: '_Tuple2', _0: 0, _1: 0},
-																				repeat: _mdgriffith$style_elements$Style_Background$noRepeat,
-																				size: _mdgriffith$style_elements$Style_Background$width(
-																					_mdgriffith$style_elements$Element_Attributes$px(25))
-																			}),
-																		_1: {
-																			ctor: '::',
-																			_0: _mdgriffith$style_elements$Style$opacity(0.5),
-																			_1: {
-																				ctor: '::',
-																				_0: _mdgriffith$style_elements$Style$hover(
-																					{
-																						ctor: '::',
-																						_0: _mdgriffith$style_elements$Style$opacity(1),
-																						_1: {ctor: '[]'}
-																					}),
-																				_1: {ctor: '[]'}
-																			}
-																		}
+																		_0: _mdgriffith$style_elements$Style_Color$background(_user$project$Views$colorTransparent),
+																		_1: {ctor: '[]'}
 																	}),
 																_1: {
 																	ctor: '::',
 																	_0: A2(
 																		_mdgriffith$style_elements$Style$style,
-																		_user$project$Views$MoveHandle,
-																		A2(
-																			_elm_lang$core$Basics_ops['++'],
-																			_user$project$Views$buttonStyle,
-																			{
+																		_user$project$Views$Github,
+																		{
+																			ctor: '::',
+																			_0: _mdgriffith$style_elements$Style_Background$imageWith(
+																				{
+																					src: '/assets/images/GitHub-Mark-Light-32px.png',
+																					position: {ctor: '_Tuple2', _0: 0, _1: 0},
+																					repeat: _mdgriffith$style_elements$Style_Background$noRepeat,
+																					size: _mdgriffith$style_elements$Style_Background$width(
+																						_mdgriffith$style_elements$Element_Attributes$px(25))
+																				}),
+																			_1: {
 																				ctor: '::',
-																				_0: _mdgriffith$style_elements$Style$cursor('move !important'),
-																				_1: {ctor: '[]'}
-																			})),
+																				_0: _mdgriffith$style_elements$Style$opacity(0.5),
+																				_1: {
+																					ctor: '::',
+																					_0: _mdgriffith$style_elements$Style$hover(
+																						{
+																							ctor: '::',
+																							_0: _mdgriffith$style_elements$Style$opacity(1),
+																							_1: {ctor: '[]'}
+																						}),
+																					_1: {ctor: '[]'}
+																				}
+																			}
+																		}),
 																	_1: {
 																		ctor: '::',
 																		_0: A2(
 																			_mdgriffith$style_elements$Style$style,
-																			_user$project$Views$DoneIndicator,
-																			{
-																				ctor: '::',
-																				_0: _mdgriffith$style_elements$Style_Color$background(
-																					A3(_elm_lang$core$Color$rgb, 219, 80, 96)),
-																				_1: {ctor: '[]'}
-																			}),
+																			_user$project$Views$MoveHandle,
+																			A2(
+																				_elm_lang$core$Basics_ops['++'],
+																				_user$project$Views$buttonStyle,
+																				{
+																					ctor: '::',
+																					_0: _mdgriffith$style_elements$Style$cursor('move !important'),
+																					_1: {ctor: '[]'}
+																				})),
 																		_1: {
 																			ctor: '::',
 																			_0: A2(
 																				_mdgriffith$style_elements$Style$style,
-																				_user$project$Views$PendingIndicator,
+																				_user$project$Views$DoneIndicator,
 																				{
 																					ctor: '::',
 																					_0: _mdgriffith$style_elements$Style_Color$background(
-																						A3(_elm_lang$core$Color$rgb, 28, 155, 198)),
+																						A3(_elm_lang$core$Color$rgb, 219, 80, 96)),
 																					_1: {ctor: '[]'}
 																				}),
 																			_1: {
 																				ctor: '::',
 																				_0: A2(
 																					_mdgriffith$style_elements$Style$style,
-																					_user$project$Views$Modal,
-																					A2(
-																						_elm_lang$core$Basics_ops['++'],
-																						_user$project$Views$fontStyles,
-																						{
-																							ctor: '::',
-																							_0: _mdgriffith$style_elements$Style_Color$text(_user$project$Views$colorDefault),
-																							_1: {
+																					_user$project$Views$PendingIndicator,
+																					{
+																						ctor: '::',
+																						_0: _mdgriffith$style_elements$Style_Color$background(
+																							A3(_elm_lang$core$Color$rgb, 28, 155, 198)),
+																						_1: {ctor: '[]'}
+																					}),
+																				_1: {
+																					ctor: '::',
+																					_0: A2(
+																						_mdgriffith$style_elements$Style$style,
+																						_user$project$Views$Modal,
+																						A2(
+																							_elm_lang$core$Basics_ops['++'],
+																							_user$project$Views$fontStyles,
+																							{
 																								ctor: '::',
-																								_0: _mdgriffith$style_elements$Style_Color$background(_user$project$Views$colorBackgroundAlt),
+																								_0: _mdgriffith$style_elements$Style_Color$text(_user$project$Views$colorDefault),
 																								_1: {
 																									ctor: '::',
-																									_0: _mdgriffith$style_elements$Style_Shadow$drop(
-																										{
-																											offset: {ctor: '_Tuple2', _0: 5, _1: 5},
-																											blur: 10,
-																											color: A4(_elm_lang$core$Color$rgba, 0, 0, 0, 1)
-																										}),
-																									_1: {ctor: '[]'}
+																									_0: _mdgriffith$style_elements$Style_Color$background(_user$project$Views$colorBackgroundAlt),
+																									_1: {
+																										ctor: '::',
+																										_0: _mdgriffith$style_elements$Style_Shadow$drop(
+																											{
+																												offset: {ctor: '_Tuple2', _0: 5, _1: 5},
+																												blur: 10,
+																												color: A4(_elm_lang$core$Color$rgba, 0, 0, 0, 1)
+																											}),
+																										_1: {ctor: '[]'}
+																									}
 																								}
-																							}
-																						})),
-																				_1: {ctor: '[]'}
+																							})),
+																					_1: {ctor: '[]'}
+																				}
 																			}
 																		}
 																	}
@@ -25840,7 +25852,20 @@ var _user$project$Views$view = function (model) {
 								{
 									ctor: '::',
 									_0: A3(_mdgriffith$style_elements$Element$column, _user$project$Views$None, _user$project$Views$commonSpacing, content),
-									_1: {ctor: '[]'}
+									_1: {
+										ctor: '::',
+										_0: A3(
+											_mdgriffith$style_elements$Element$row,
+											_user$project$Views$Footer,
+											{
+												ctor: '::',
+												_0: _mdgriffith$style_elements$Element_Attributes$height(
+													_mdgriffith$style_elements$Element_Attributes$px(50)),
+												_1: {ctor: '[]'}
+											},
+											{ctor: '[]'}),
+										_1: {ctor: '[]'}
+									}
 								}),
 							_1: {ctor: '[]'}
 						}),
@@ -25864,6 +25889,12 @@ var _user$project$App$subscriptions = function (model) {
 				}
 			}
 		});
+};
+var _user$project$App$focusCmd = function (elId) {
+	return A2(
+		_elm_lang$core$Task$attempt,
+		_user$project$Types$Ignore,
+		_elm_lang$dom$Dom$focus(elId));
 };
 var _user$project$App$update = F2(
 	function (msg, model) {
@@ -25940,11 +25971,8 @@ var _user$project$App$update = F2(
 							_0: _user$project$Model$saveModel(newModel),
 							_1: {
 								ctor: '::',
-								_0: A2(
-									_elm_lang$core$Task$attempt,
-									_user$project$Types$Ignore,
-									_elm_lang$dom$Dom$focus(
-										_elm_lang$core$Basics$toString(newTask.uuid))),
+								_0: _user$project$App$focusCmd(
+									_elm_lang$core$Basics$toString(newTask.uuid)),
 								_1: {ctor: '[]'}
 							}
 						})
@@ -26011,11 +26039,23 @@ var _user$project$App$update = F2(
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'GroupNew':
-				var newModel = A2(_user$project$Model$addNewGroup, model, _p0._0);
+				var _p4 = A2(_user$project$Model$addNewGroup, model, _p0._0);
+				var newModel = _p4._0;
+				var newGroup = _p4._1;
 				return {
 					ctor: '_Tuple2',
 					_0: newModel,
-					_1: _user$project$Model$saveModel(newModel)
+					_1: _elm_lang$core$Platform_Cmd$batch(
+						{
+							ctor: '::',
+							_0: _user$project$Model$saveModel(newModel),
+							_1: {
+								ctor: '::',
+								_0: _user$project$App$focusCmd(
+									_elm_lang$core$Basics$toString(newGroup.uuid)),
+								_1: {ctor: '[]'}
+							}
+						})
 				};
 			case 'GroupRemove':
 				var newModel = A2(_user$project$Model$removeGroup, _p0._0, model);
