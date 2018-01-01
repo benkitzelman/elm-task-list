@@ -1,4 +1,4 @@
-port module Model exposing (draggedTask, dropDragged, dropAll, dropTaskIn, moveTaskToGroup, parentGroup, addNewGroup, addNewTask, removeTask, removeGroup, updateTask, updateGroup, loadModel, saveModel, serialize, deserialize, onModelLoaded, readSelectedFileFromInput, onFileImported)
+port module Model exposing (setGroupDropPosition, draggedTask, dropDragged, dropAll, dropTaskIn, moveTaskToGroup, parentGroup, addNewGroup, addNewTask, removeTask, removeGroup, updateTask, updateGroup, loadModel, saveModel, serialize, deserialize, onModelLoaded, readSelectedFileFromInput, onFileImported)
 
 import Uuid exposing (Uuid, uuidGenerator)
 import Random.Pcg exposing (Seed, step)
@@ -65,6 +65,7 @@ newGroup seed =
         ( { uuid = uuid
           , title = ""
           , isDragging = False
+          , dropPosition = Nothing
           , tasks = []
           }
         , newSeed
@@ -237,16 +238,61 @@ dropDraggedGroup position group model =
                 model
 
             Just dGroup ->
-                model
-                    |> removeGroup dGroup
-                    |> insert dGroup
+                let
+                    newModel =
+                        if dGroup == group then
+                            model
+                        else
+                            model
+                                |> removeGroup dGroup
+                                |> insert (dropGroup dGroup)
+                in
+                    newModel
 
 
 dropDragged : Group -> Model -> Model
 dropDragged group model =
-    model
-        |> dropDraggedGroup After group
-        |> dropDraggedTaskInto group
+    let
+        pos =
+            case (getDropPosition model) of
+                Nothing ->
+                    After
+
+                Just pos ->
+                    pos
+    in
+        model
+            |> dropDraggedGroup pos group
+            |> dropDraggedTaskInto group
+
+
+getDropPosition : Model -> Maybe Position
+getDropPosition model =
+    let
+        dropPos group pos =
+            if (group.dropPosition /= Nothing) then
+                group.dropPosition
+            else
+                pos
+    in
+        List.foldl dropPos (Just After) model.groups
+
+
+setGroupDropPosition : Position -> Group -> Model -> Model
+setGroupDropPosition pos group model =
+    let
+        clearGroupDropPosition group model =
+            updateGroup model { group | dropPosition = Nothing }
+
+        cleanModel =
+            List.foldl clearGroupDropPosition model model.groups
+    in
+        case (draggedGroup cleanModel) of
+            Nothing ->
+                cleanModel
+
+            Just _ ->
+                updateGroup cleanModel { group | dropPosition = Just pos }
 
 
 
@@ -260,7 +306,7 @@ dropTask task =
 
 dropGroup : Group -> Group
 dropGroup group =
-    { group | isDragging = False }
+    { group | isDragging = False, dropPosition = Nothing }
 
 
 dropTaskIn : Task -> Model -> Model
@@ -318,11 +364,12 @@ taskFromJson =
 
 groupFromJson : Json.Decode.Decoder Group
 groupFromJson =
-    Json.Decode.map4 Group
+    Json.Decode.map5 Group
         (field "uuid" Uuid.decoder)
         (field "title" Json.Decode.string)
         (field "tasks" (Json.Decode.list taskFromJson))
         (field "isDragging" Json.Decode.bool)
+        (field "dropPosition" (Json.Decode.null Nothing))
 
 
 fromJson : Json.Decode.Decoder Model
@@ -380,6 +427,7 @@ groupJson group =
         , ( "title", string group.title )
         , ( "tasks", Json.Encode.list (List.map taskJson group.tasks) )
         , ( "isDragging", bool False )
+        , ( "dropPosition", Json.Encode.null )
         ]
 
 

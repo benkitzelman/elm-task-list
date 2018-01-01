@@ -24101,9 +24101,9 @@ var _user$project$Types$Task = F4(
 	function (a, b, c, d) {
 		return {uuid: a, description: b, isDone: c, isDragging: d};
 	});
-var _user$project$Types$Group = F4(
-	function (a, b, c, d) {
-		return {uuid: a, title: b, tasks: c, isDragging: d};
+var _user$project$Types$Group = F5(
+	function (a, b, c, d, e) {
+		return {uuid: a, title: b, tasks: c, isDragging: d, dropPosition: e};
 	});
 var _user$project$Types$Model = F5(
 	function (a, b, c, d, e) {
@@ -24125,6 +24125,9 @@ var _user$project$Types$ImportFile = function (a) {
 	return {ctor: 'ImportFile', _0: a};
 };
 var _user$project$Types$ShowImport = {ctor: 'ShowImport'};
+var _user$project$Types$GroupMouseOver = function (a) {
+	return {ctor: 'GroupMouseOver', _0: a};
+};
 var _user$project$Types$GroupDrag = function (a) {
 	return {ctor: 'GroupDrag', _0: a};
 };
@@ -24231,7 +24234,11 @@ var _user$project$Model$groupJson = function (group) {
 							_0: 'isDragging',
 							_1: _elm_lang$core$Json_Encode$bool(false)
 						},
-						_1: {ctor: '[]'}
+						_1: {
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'dropPosition', _1: _elm_lang$core$Json_Encode$null},
+							_1: {ctor: '[]'}
+						}
 					}
 				}
 			}
@@ -24295,8 +24302,8 @@ var _user$project$Model$taskFromJson = A5(
 	A2(_elm_lang$core$Json_Decode$field, 'description', _elm_lang$core$Json_Decode$string),
 	A2(_elm_lang$core$Json_Decode$field, 'isDone', _elm_lang$core$Json_Decode$bool),
 	A2(_elm_lang$core$Json_Decode$field, 'isDragging', _elm_lang$core$Json_Decode$bool));
-var _user$project$Model$groupFromJson = A5(
-	_elm_lang$core$Json_Decode$map4,
+var _user$project$Model$groupFromJson = A6(
+	_elm_lang$core$Json_Decode$map5,
 	_user$project$Types$Group,
 	A2(_elm_lang$core$Json_Decode$field, 'uuid', _danyx23$elm_uuid$Uuid$decoder),
 	A2(_elm_lang$core$Json_Decode$field, 'title', _elm_lang$core$Json_Decode$string),
@@ -24304,7 +24311,11 @@ var _user$project$Model$groupFromJson = A5(
 		_elm_lang$core$Json_Decode$field,
 		'tasks',
 		_elm_lang$core$Json_Decode$list(_user$project$Model$taskFromJson)),
-	A2(_elm_lang$core$Json_Decode$field, 'isDragging', _elm_lang$core$Json_Decode$bool));
+	A2(_elm_lang$core$Json_Decode$field, 'isDragging', _elm_lang$core$Json_Decode$bool),
+	A2(
+		_elm_lang$core$Json_Decode$field,
+		'dropPosition',
+		_elm_lang$core$Json_Decode$null(_elm_lang$core$Maybe$Nothing)));
 var _user$project$Model$fromJson = A6(
 	_elm_lang$core$Json_Decode$map5,
 	_user$project$Types$Model,
@@ -24344,12 +24355,23 @@ var _user$project$Model$deserialize = F2(
 var _user$project$Model$dropGroup = function (group) {
 	return _elm_lang$core$Native_Utils.update(
 		group,
-		{isDragging: false});
+		{isDragging: false, dropPosition: _elm_lang$core$Maybe$Nothing});
 };
 var _user$project$Model$dropTask = function (task) {
 	return _elm_lang$core$Native_Utils.update(
 		task,
 		{isDragging: false});
+};
+var _user$project$Model$getDropPosition = function (model) {
+	var dropPos = F2(
+		function (group, pos) {
+			return (!_elm_lang$core$Native_Utils.eq(group.dropPosition, _elm_lang$core$Maybe$Nothing)) ? group.dropPosition : pos;
+		});
+	return A3(
+		_elm_lang$core$List$foldl,
+		dropPos,
+		_elm_lang$core$Maybe$Just(_user$project$Types$After),
+		model.groups);
 };
 var _user$project$Model$asTasksIn = F2(
 	function (group, tasks) {
@@ -24547,6 +24569,7 @@ var _user$project$Model$newGroup = function (seed) {
 			uuid: uuid,
 			title: '',
 			isDragging: false,
+			dropPosition: _elm_lang$core$Maybe$Nothing,
 			tasks: {ctor: '[]'}
 		},
 		_1: newSeed
@@ -24627,10 +24650,37 @@ var _user$project$Model$dropDraggedGroup = F3(
 			return model;
 		} else {
 			var _p12 = _p11._0;
-			return A2(
+			var newModel = _elm_lang$core$Native_Utils.eq(_p12, group) ? model : A2(
 				insert,
-				_p12,
+				_user$project$Model$dropGroup(_p12),
 				A2(_user$project$Model$removeGroup, _p12, model));
+			return newModel;
+		}
+	});
+var _user$project$Model$setGroupDropPosition = F3(
+	function (pos, group, model) {
+		var clearGroupDropPosition = F2(
+			function (group, model) {
+				return A2(
+					_user$project$Model$updateGroup,
+					model,
+					_elm_lang$core$Native_Utils.update(
+						group,
+						{dropPosition: _elm_lang$core$Maybe$Nothing}));
+			});
+		var cleanModel = A3(_elm_lang$core$List$foldl, clearGroupDropPosition, model, model.groups);
+		var _p13 = _user$project$Model$draggedGroup(cleanModel);
+		if (_p13.ctor === 'Nothing') {
+			return cleanModel;
+		} else {
+			return A2(
+				_user$project$Model$updateGroup,
+				cleanModel,
+				_elm_lang$core$Native_Utils.update(
+					group,
+					{
+						dropPosition: _elm_lang$core$Maybe$Just(pos)
+					}));
 		}
 	});
 var _user$project$Model$allTasks = function (model) {
@@ -24652,30 +24702,38 @@ var _user$project$Model$draggedTask = function (model) {
 };
 var _user$project$Model$dropDraggedTaskInto = F2(
 	function (toGroup, model) {
-		var _p13 = _user$project$Model$draggedTask(model);
-		if (_p13.ctor === 'Nothing') {
+		var _p14 = _user$project$Model$draggedTask(model);
+		if (_p14.ctor === 'Nothing') {
 			return model;
 		} else {
-			var _p15 = _p13._0;
-			var _p14 = A2(_user$project$Model$parentGroup, _p15, model);
-			if (_p14.ctor === 'Nothing') {
+			var _p16 = _p14._0;
+			var _p15 = A2(_user$project$Model$parentGroup, _p16, model);
+			if (_p15.ctor === 'Nothing') {
 				return model;
 			} else {
 				return A4(
 					_user$project$Model$moveTaskToGroup,
 					model,
-					_p14._0,
+					_p15._0,
 					toGroup,
-					_user$project$Model$dropTask(_p15));
+					_user$project$Model$dropTask(_p16));
 			}
 		}
 	});
 var _user$project$Model$dropDragged = F2(
 	function (group, model) {
+		var pos = function () {
+			var _p17 = _user$project$Model$getDropPosition(model);
+			if (_p17.ctor === 'Nothing') {
+				return _user$project$Types$After;
+			} else {
+				return _p17._0;
+			}
+		}();
 		return A2(
 			_user$project$Model$dropDraggedTaskInto,
 			group,
-			A3(_user$project$Model$dropDraggedGroup, _user$project$Types$After, group, model));
+			A3(_user$project$Model$dropDraggedGroup, pos, group, model));
 	});
 var _user$project$Model$dropAllTasks = function (model) {
 	return A3(
@@ -24702,8 +24760,8 @@ var _user$project$Model$getLocalStorage = _elm_lang$core$Native_Platform.outgoin
 	function (v) {
 		return null;
 	});
-var _user$project$Model$loadModel = function (_p16) {
-	var _p17 = _p16;
+var _user$project$Model$loadModel = function (_p18) {
+	var _p19 = _p18;
 	return _user$project$Model$getLocalStorage(
 		{ctor: '_Tuple0'});
 };
@@ -24934,6 +24992,8 @@ var _user$project$Views$exportBtn = function (model) {
 };
 var _user$project$Views$TextInput = {ctor: 'TextInput'};
 var _user$project$Views$TitleField = {ctor: 'TitleField'};
+var _user$project$Views$GroupBelow = {ctor: 'GroupBelow'};
+var _user$project$Views$GroupAbove = {ctor: 'GroupAbove'};
 var _user$project$Views$Group = {ctor: 'Group'};
 var _user$project$Views$Title = {ctor: 'Title'};
 var _user$project$Views$Content = {ctor: 'Content'};
@@ -25005,144 +25065,174 @@ var _user$project$Views$stylesheet = _mdgriffith$style_elements$Style$styleSheet
 								ctor: '::',
 								_0: A2(
 									_mdgriffith$style_elements$Style$style,
-									_user$project$Views$TaskDone,
-									A2(
-										_elm_lang$core$Basics_ops['++'],
-										_user$project$Views$taskStyle,
-										{
+									_user$project$Views$GroupAbove,
+									{
+										ctor: '::',
+										_0: _mdgriffith$style_elements$Style_Border$top(2),
+										_1: {
 											ctor: '::',
-											_0: _mdgriffith$style_elements$Style_Color$background(
-												A3(_elm_lang$core$Color$rgb, 67, 74, 78)),
-											_1: {
-												ctor: '::',
-												_0: _mdgriffith$style_elements$Style_Color$text(_elm_lang$core$Color$grey),
-												_1: {ctor: '[]'}
-											}
-										})),
+											_0: _mdgriffith$style_elements$Style_Color$border(_user$project$Views$colorHighlight),
+											_1: {ctor: '[]'}
+										}
+									}),
 								_1: {
 									ctor: '::',
-									_0: A2(_mdgriffith$style_elements$Style$style, _user$project$Views$TaskPending, _user$project$Views$taskStyle),
+									_0: A2(
+										_mdgriffith$style_elements$Style$style,
+										_user$project$Views$GroupBelow,
+										{
+											ctor: '::',
+											_0: _mdgriffith$style_elements$Style_Border$bottom(2),
+											_1: {
+												ctor: '::',
+												_0: _mdgriffith$style_elements$Style_Color$border(_user$project$Views$colorHighlight),
+												_1: {ctor: '[]'}
+											}
+										}),
 									_1: {
 										ctor: '::',
 										_0: A2(
 											_mdgriffith$style_elements$Style$style,
-											_user$project$Views$TitleField,
+											_user$project$Views$TaskDone,
 											A2(
 												_elm_lang$core$Basics_ops['++'],
-												_user$project$Views$textInput,
+												_user$project$Views$taskStyle,
 												{
 													ctor: '::',
-													_0: _mdgriffith$style_elements$Style_Font$size(18),
-													_1: {ctor: '[]'}
+													_0: _mdgriffith$style_elements$Style_Color$background(
+														A3(_elm_lang$core$Color$rgb, 67, 74, 78)),
+													_1: {
+														ctor: '::',
+														_0: _mdgriffith$style_elements$Style_Color$text(_elm_lang$core$Color$grey),
+														_1: {ctor: '[]'}
+													}
 												})),
 										_1: {
 											ctor: '::',
-											_0: A2(_mdgriffith$style_elements$Style$style, _user$project$Views$TextInput, _user$project$Views$textInput),
+											_0: A2(_mdgriffith$style_elements$Style$style, _user$project$Views$TaskPending, _user$project$Views$taskStyle),
 											_1: {
 												ctor: '::',
-												_0: A2(_mdgriffith$style_elements$Style$style, _user$project$Views$Button, _user$project$Views$buttonStyle),
-												_1: {
-													ctor: '::',
-													_0: A2(
-														_mdgriffith$style_elements$Style$style,
-														_user$project$Views$ImageButton,
+												_0: A2(
+													_mdgriffith$style_elements$Style$style,
+													_user$project$Views$TitleField,
+													A2(
+														_elm_lang$core$Basics_ops['++'],
+														_user$project$Views$textInput,
 														{
 															ctor: '::',
-															_0: _mdgriffith$style_elements$Style_Color$background(_user$project$Views$colorTransparent),
+															_0: _mdgriffith$style_elements$Style_Font$size(18),
 															_1: {ctor: '[]'}
-														}),
+														})),
+												_1: {
+													ctor: '::',
+													_0: A2(_mdgriffith$style_elements$Style$style, _user$project$Views$TextInput, _user$project$Views$textInput),
 													_1: {
 														ctor: '::',
-														_0: A2(
-															_mdgriffith$style_elements$Style$style,
-															_user$project$Views$Github,
-															{
-																ctor: '::',
-																_0: _mdgriffith$style_elements$Style_Background$imageWith(
-																	{
-																		src: '/assets/images/GitHub-Mark-Light-32px.png',
-																		position: {ctor: '_Tuple2', _0: 0, _1: 0},
-																		repeat: _mdgriffith$style_elements$Style_Background$noRepeat,
-																		size: _mdgriffith$style_elements$Style_Background$width(
-																			_mdgriffith$style_elements$Element_Attributes$px(25))
-																	}),
-																_1: {
-																	ctor: '::',
-																	_0: _mdgriffith$style_elements$Style$opacity(0.5),
-																	_1: {
-																		ctor: '::',
-																		_0: _mdgriffith$style_elements$Style$hover(
-																			{
-																				ctor: '::',
-																				_0: _mdgriffith$style_elements$Style$opacity(1),
-																				_1: {ctor: '[]'}
-																			}),
-																		_1: {ctor: '[]'}
-																	}
-																}
-															}),
+														_0: A2(_mdgriffith$style_elements$Style$style, _user$project$Views$Button, _user$project$Views$buttonStyle),
 														_1: {
 															ctor: '::',
 															_0: A2(
 																_mdgriffith$style_elements$Style$style,
-																_user$project$Views$MoveHandle,
-																A2(
-																	_elm_lang$core$Basics_ops['++'],
-																	_user$project$Views$buttonStyle,
-																	{
-																		ctor: '::',
-																		_0: _mdgriffith$style_elements$Style$cursor('move !important'),
-																		_1: {ctor: '[]'}
-																	})),
+																_user$project$Views$ImageButton,
+																{
+																	ctor: '::',
+																	_0: _mdgriffith$style_elements$Style_Color$background(_user$project$Views$colorTransparent),
+																	_1: {ctor: '[]'}
+																}),
 															_1: {
 																ctor: '::',
 																_0: A2(
 																	_mdgriffith$style_elements$Style$style,
-																	_user$project$Views$DoneIndicator,
+																	_user$project$Views$Github,
 																	{
 																		ctor: '::',
-																		_0: _mdgriffith$style_elements$Style_Color$background(
-																			A3(_elm_lang$core$Color$rgb, 219, 80, 96)),
-																		_1: {ctor: '[]'}
+																		_0: _mdgriffith$style_elements$Style_Background$imageWith(
+																			{
+																				src: '/assets/images/GitHub-Mark-Light-32px.png',
+																				position: {ctor: '_Tuple2', _0: 0, _1: 0},
+																				repeat: _mdgriffith$style_elements$Style_Background$noRepeat,
+																				size: _mdgriffith$style_elements$Style_Background$width(
+																					_mdgriffith$style_elements$Element_Attributes$px(25))
+																			}),
+																		_1: {
+																			ctor: '::',
+																			_0: _mdgriffith$style_elements$Style$opacity(0.5),
+																			_1: {
+																				ctor: '::',
+																				_0: _mdgriffith$style_elements$Style$hover(
+																					{
+																						ctor: '::',
+																						_0: _mdgriffith$style_elements$Style$opacity(1),
+																						_1: {ctor: '[]'}
+																					}),
+																				_1: {ctor: '[]'}
+																			}
+																		}
 																	}),
 																_1: {
 																	ctor: '::',
 																	_0: A2(
 																		_mdgriffith$style_elements$Style$style,
-																		_user$project$Views$PendingIndicator,
-																		{
-																			ctor: '::',
-																			_0: _mdgriffith$style_elements$Style_Color$background(
-																				A3(_elm_lang$core$Color$rgb, 28, 155, 198)),
-																			_1: {ctor: '[]'}
-																		}),
+																		_user$project$Views$MoveHandle,
+																		A2(
+																			_elm_lang$core$Basics_ops['++'],
+																			_user$project$Views$buttonStyle,
+																			{
+																				ctor: '::',
+																				_0: _mdgriffith$style_elements$Style$cursor('move !important'),
+																				_1: {ctor: '[]'}
+																			})),
 																	_1: {
 																		ctor: '::',
 																		_0: A2(
 																			_mdgriffith$style_elements$Style$style,
-																			_user$project$Views$Modal,
-																			A2(
-																				_elm_lang$core$Basics_ops['++'],
-																				_user$project$Views$fontStyles,
+																			_user$project$Views$DoneIndicator,
+																			{
+																				ctor: '::',
+																				_0: _mdgriffith$style_elements$Style_Color$background(
+																					A3(_elm_lang$core$Color$rgb, 219, 80, 96)),
+																				_1: {ctor: '[]'}
+																			}),
+																		_1: {
+																			ctor: '::',
+																			_0: A2(
+																				_mdgriffith$style_elements$Style$style,
+																				_user$project$Views$PendingIndicator,
 																				{
 																					ctor: '::',
-																					_0: _mdgriffith$style_elements$Style_Color$text(_user$project$Views$colorDefault),
-																					_1: {
-																						ctor: '::',
-																						_0: _mdgriffith$style_elements$Style_Color$background(_user$project$Views$colorBackgroundAlt),
-																						_1: {
+																					_0: _mdgriffith$style_elements$Style_Color$background(
+																						A3(_elm_lang$core$Color$rgb, 28, 155, 198)),
+																					_1: {ctor: '[]'}
+																				}),
+																			_1: {
+																				ctor: '::',
+																				_0: A2(
+																					_mdgriffith$style_elements$Style$style,
+																					_user$project$Views$Modal,
+																					A2(
+																						_elm_lang$core$Basics_ops['++'],
+																						_user$project$Views$fontStyles,
+																						{
 																							ctor: '::',
-																							_0: _mdgriffith$style_elements$Style_Shadow$drop(
-																								{
-																									offset: {ctor: '_Tuple2', _0: 5, _1: 5},
-																									blur: 10,
-																									color: A4(_elm_lang$core$Color$rgba, 0, 0, 0, 1)
-																								}),
-																							_1: {ctor: '[]'}
-																						}
-																					}
-																				})),
-																		_1: {ctor: '[]'}
+																							_0: _mdgriffith$style_elements$Style_Color$text(_user$project$Views$colorDefault),
+																							_1: {
+																								ctor: '::',
+																								_0: _mdgriffith$style_elements$Style_Color$background(_user$project$Views$colorBackgroundAlt),
+																								_1: {
+																									ctor: '::',
+																									_0: _mdgriffith$style_elements$Style_Shadow$drop(
+																										{
+																											offset: {ctor: '_Tuple2', _0: 5, _1: 5},
+																											blur: 10,
+																											color: A4(_elm_lang$core$Color$rgba, 0, 0, 0, 1)
+																										}),
+																									_1: {ctor: '[]'}
+																								}
+																							}
+																						})),
+																				_1: {ctor: '[]'}
+																			}
+																		}
 																	}
 																}
 															}
@@ -25416,9 +25506,22 @@ var _user$project$Views$renderGroup = F2(
 		var renderTask = function (task) {
 			return _elm_lang$core$Native_Utils.eq(task.isDone, false) ? A4(_user$project$Views$editTask, _user$project$Views$TaskPending, model, group, task) : A3(_user$project$Views$viewTask, _user$project$Views$TaskDone, group, task);
 		};
+		var style = function () {
+			var _p5 = group.dropPosition;
+			if (_p5.ctor === 'Nothing') {
+				return _user$project$Views$Group;
+			} else {
+				var _p6 = _p5._0;
+				if (_p6.ctor === 'Before') {
+					return _user$project$Views$GroupAbove;
+				} else {
+					return _user$project$Views$GroupBelow;
+				}
+			}
+		}();
 		return A3(
 			_mdgriffith$style_elements$Element$column,
-			_user$project$Views$Group,
+			style,
 			A2(
 				_elm_lang$core$Basics_ops['++'],
 				_user$project$Views$commonSpacing,
@@ -25427,7 +25530,12 @@ var _user$project$Views$renderGroup = F2(
 					_0: _mdgriffith$style_elements$Element_Events$onMouseUp(
 						_user$project$Types$Drop(
 							_elm_lang$core$Maybe$Just(group))),
-					_1: {ctor: '[]'}
+					_1: {
+						ctor: '::',
+						_0: _mdgriffith$style_elements$Element_Events$onMouseOver(
+							_user$project$Types$GroupMouseOver(group)),
+						_1: {ctor: '[]'}
+					}
 				}),
 			{
 				ctor: '::',
@@ -25848,6 +25956,9 @@ var _user$project$App$update = F2(
 					_elm_lang$core$Native_Utils.update(
 						_p0._0,
 						{isDragging: true}));
+				return {ctor: '_Tuple2', _0: newModel, _1: _elm_lang$core$Platform_Cmd$none};
+			case 'GroupMouseOver':
+				var newModel = A3(_user$project$Model$setGroupDropPosition, _user$project$Types$Before, _p0._0, model);
 				return {ctor: '_Tuple2', _0: newModel, _1: _elm_lang$core$Platform_Cmd$none};
 			case 'TaskDrag':
 				var newModel = A3(

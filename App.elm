@@ -83,6 +83,13 @@ update msg model =
             in
                 ( newModel, Cmd.none )
 
+        GroupMouseOver group ->
+            let
+                newModel =
+                    setGroupDropPosition Before group model
+            in
+                ( newModel, Cmd.none )
+
         TaskDrag group task ->
             let
                 newModel =

@@ -11,7 +11,7 @@ type alias Task =
 
 
 type alias Group =
-    { uuid : Uuid, title : String, tasks : List Task, isDragging : Bool }
+    { uuid : Uuid, title : String, tasks : List Task, isDragging : Bool, dropPosition : Maybe Position }
 
 
 type alias Model =
@@ -35,6 +35,7 @@ type Msg
     | GroupRemove Group
     | GroupNew (Maybe Group)
     | GroupDrag Group
+    | GroupMouseOver Group
     | ShowImport
     | ImportFile String
     | OnImported (Maybe String)

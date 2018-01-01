@@ -26,6 +26,8 @@ type Styles
     | Content
     | Title
     | Group
+    | GroupAbove
+    | GroupBelow
     | TitleField
     | TextInput
     | Button
@@ -75,7 +77,6 @@ colorTransparent =
 
 buttonStyle : List (Property class variation)
 buttonStyle =
-    --[ Border.all 1 -- set all border widths to 1 px.
     [ Color.background colorTransparent
     , Color.text colorHighlight
     , hover
@@ -144,6 +145,14 @@ stylesheet =
             ]
         , style Group
             []
+        , style GroupAbove
+            [ Border.top 2
+            , Color.border colorHighlight
+            ]
+        , style GroupBelow
+            [ Border.bottom 2
+            , Color.border colorHighlight
+            ]
         , style TaskDone
             (taskStyle
                 ++ [ Color.background (Color.rgb 67 74 78)
@@ -327,14 +336,27 @@ view model =
 renderGroup : Model -> Group -> Element Styles variation Msg
 renderGroup model group =
     let
+        style =
+            case group.dropPosition of
+                Nothing ->
+                    Group
+
+                Just pos ->
+                    case pos of
+                        Before ->
+                            GroupAbove
+
+                        After ->
+                            GroupBelow
+
         renderTask task =
             if task.isDone == False then
                 editTask TaskPending model group task
             else
                 viewTask TaskDone group task
     in
-        column Group
-            (commonSpacing ++ [ onMouseUp (Drop (Just group)) ])
+        column style
+            (commonSpacing ++ [ onMouseUp (Drop (Just group)), onMouseOver (GroupMouseOver group) ])
             [ row None
                 (commonSpacing ++ [ spread ])
                 [ inputField TitleField (toString group.uuid) group.title (GroupTitle group) [] "Enter group title..."
