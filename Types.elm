@@ -11,16 +11,16 @@ type alias Task =
 
 
 type alias Group =
-    { uuid : Uuid, title : String, tasks : List Task, isDragging : Bool, dropPosition : Maybe Position }
+    { uuid : Uuid, title : String, tasks : List Task }
 
 
 type alias Model =
-    { groups : List Group, seed : Seed, mouseCoords : Maybe Mouse.Position, focusedTaskUuid : Maybe Uuid, showImportModal : Bool }
+    { groups : List Group, seed : Seed, mouseCoords : Maybe Mouse.Position, focusedTaskUuid : Maybe Uuid, showImportModal : Bool, groupDragState : GroupDragstate }
 
 
-type Position
-    = Before
-    | After
+type GroupDragstate
+    = Dragging { group : Group, target : Group }
+    | NotDragging
 
 
 type Msg
